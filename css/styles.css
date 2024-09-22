@@ -1,0 +1,22 @@
+body {
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#sidebar {
+    width: 250px;
+    background: #f8f9fa;
+    padding: 10px;
+    overflow-y: auto;
+    border-right: 1px solid #ddd;
+}
+
+#map {
+    flex: 1;
+}
+
+.layer-checkbox {
+    margin: 10px 0;
+}
