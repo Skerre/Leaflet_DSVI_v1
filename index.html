@@ -9,24 +9,47 @@
 </head>
 <body>
     <div id="sidebar">
-        <h3>Layers</h3>
-
-        <h4>Vector Layers</h4>
-        <div class="layer-checkbox">
-            <input type="checkbox" id="geojsonLayer" checked>
-            <label for="geojsonLayer">GeoJSON Layer</label>
+        <h3>Layer Controls</h3>
+        
+        <!-- Vector Layers Section -->
+        <div class="layer-group">
+            <button class="dropdown-btn">Vector Layers</button>
+            <div class="dropdown-content">
+                <label class="layer-checkbox">
+                    <input type="checkbox" id="geojsonLayer">
+                    GeoJSON Layer
+                </label>
+            </div>
         </div>
 
-        <h4>Raster Layers</h4>
-        <div class="layer-checkbox">
-            <input type="checkbox" id="rasterLayer" checked>
-            <label for="rasterLayer">Raster TIFF Layer</label>
+        <!-- Raster Layers Section -->
+        <div class="layer-group">
+            <button class="dropdown-btn">Raster Layers</button>
+            <div class="dropdown-content">
+                <label class="layer-checkbox">
+                    <input type="checkbox" id="tiffLayer1">
+                    Sample TIFF Layer 1
+                </label>
+                <label class="layer-checkbox">
+                    <input type="checkbox" id="tiffLayer2">
+                    Sample TIFF Layer 2
+                </label>
+				<label class="layer-checkbox">
+                    <input type="checkbox" id="tiffLayer3">
+                    Sample TIFF Layer 3
+                </label>
+            </div>
         </div>
 
-        <h4>Point Layers</h4>
-        <div class="layer-checkbox">
-            <input type="checkbox" id="pointLayer" checked>
-            <label for="pointLayer">Point Layer</label>
+        <!-- Point Layers Section -->
+        <div class="layer-group">
+            <button class="dropdown-btn">Point Layers</button>
+            <div class="dropdown-content">
+                <label class="layer-checkbox">
+                    <input type="checkbox" id="pointLayer">
+                    Point Layer
+                </label>
+            </div>
         </div>
     </div>
 
