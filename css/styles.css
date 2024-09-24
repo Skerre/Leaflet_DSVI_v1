@@ -1,87 +1,173 @@
 body {
     margin: 0;
     display: flex;
+    flex-direction: column;
     height: 100vh;
     overflow: hidden;
-    font-family: Arial, sans-serif;
+    font-family: Calibri, sans-serif;
+}
+
+/* Top Navigation Bar */
+#navbar {
+	height: 10%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #343a40; /* Dark gray background */
+    padding: 10px 20px;
+    color: white;
+}
+
+.navbar-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 100px;
+    margin: 0 10px;
+}
+
+.navbar-menu {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.navbar-menu li {
+    margin: 0 15px;
+}
+
+.navbar-menu a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.navbar-menu a:hover {
+    color: #ddd;
+}
+
+/* Main container to hold the sidebar and map */
+.main-container {
+    display: flex;
+    flex: 1; /* Takes up the remaining space below the navbar */
+    overflow: hidden;
 }
 
 #sidebar {
-    width: 280px;
-    background-color: #343a40;
-    color: #fff;
-    padding: 15px;
+    width: 20%;
+    background: #e0e0e0;
+    padding: 20px;
     overflow-y: auto;
-    border-right: 2px solid #444;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    border-right: 1px solid #ccc;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    z-index: 1; /* Ensures the sidebar stays above the map */
 }
 
 #map {
-    flex: 1;
-}
-
-h3 {
-    margin-top: 0;
-    font-size: 18px;
-    border-bottom: 1px solid #555;
-    padding-bottom: 5px;
+    flex: 1; /* Fills the remaining space */
+    position: relative; /* Ensures the map respects the sidebar's width */
+    z-index: 0;
 }
 
 .layer-group {
-    margin-top: 10px;
+    width: 100%;
+    margin-bottom: 10px;
 }
 
 .dropdown-btn {
-    background-color: #495057;
-    color: #fff;
+    background-color: #6c757d;
+    color: white;
     padding: 10px;
+    font-size: 14px;
     border: none;
     cursor: pointer;
     width: 100%;
     text-align: left;
     outline: none;
     transition: 0.3s;
-    border-radius: 4px;
-    margin-bottom: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    border-radius: 5px;
 }
 
-.dropdown-btn::after {
+.dropdown-btn:after {
     content: '\25BC'; /* Down arrow */
-    font-size: 12px;
-    transition: transform 0.3s;
+    float: right;
+    margin-left: 10px;
+	margin-right: 10px;
 }
 
-.dropdown-btn.active::after {
-    transform: rotate(180deg);
+.dropdown-btn.active:after {
+    content: '\25B2'; /* Up arrow */
 }
 
-.dropdown-content {
+.dropdown-container {
     display: none;
     overflow: hidden;
-    background-color: #495057;
-    padding: 10px;
-    border-radius: 4px;
-    margin-top: 5px;
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    padding: 0px;
+    width: 100%;
 }
 
 .layer-checkbox {
+    margin: 5px 0;
     display: flex;
     align-items: center;
-    margin-bottom: 5px;
-    color: #ddd;
+    justify-content: flex-start;
 }
 
-.layer-checkbox input {
-    margin-right: 8px;
+.opacity-control {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 5px;
+	margin-left: 5px;
+}
+
+.opacity-control label {
+    font-size: 14px;
+    color: #333;
+    margin-right: 5px;
+}
+
+/* Custom slider styles */
+.opacity-control input[type="range"] {
+    width: 80px;
+    -webkit-appearance: none; /* Remove default styling */
+    appearance: none;
+    background: #ddd; /* Track background color */
+    height: 4px;
+    border-radius: 5px;
+    outline: none;
+}
+
+.opacity-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #6c757d; /* Thumb color */
     cursor: pointer;
+    border: 2px solid #343a40; /* Border color around the thumb */
 }
 
-/* Scroll bar styling for sidebar */
+.opacity-control input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #6c757d; /* Thumb color */
+    cursor: pointer;
+    border: 2px solid #343a40; /* Border color around the thumb */
+}
+
+
 #sidebar::-webkit-scrollbar {
     width: 8px;
 }
@@ -93,4 +179,31 @@ h3 {
 
 #sidebar::-webkit-scrollbar-thumb:hover {
     background-color: #555;
+}
+
+/* Legend styling */
+.legend {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: none; /* Hide by default and show when needed */
+}
+
+.legend h4 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.legend p {
+    margin: 0 0 5px 0;
+    color: #555;
 }
