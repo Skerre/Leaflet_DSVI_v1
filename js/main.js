@@ -9,10 +9,16 @@ import { loadTiff } from './tiffLoader.js';
 import { basemaps, addDefaultBasemap, BasemapControl } from './basemaps.js';
 
 // Initialize the map centered on Mali with the default basemap (OSM)
-const map = L.map('map').setView([17.5707, -3.9962], 6); // Center on Mali with a zoom level of 6
+const map = L.map('map').setView([41.0738487, 28.9548261], 19); // Center on Mali with a zoom level of 6
 
 // Add the default basemap on map load
 addDefaultBasemap(map);
+
+// Add a marker at the specified coordinates
+const marker = L.marker([41.0738487, 28.9548261]).addTo(map);
+
+// Optional: Bind a popup or tooltip to the marker
+marker.bindPopup("Little princess waiting").openPopup();
 
 // Add the custom basemap control to the map
 map.addControl(new BasemapControl());
