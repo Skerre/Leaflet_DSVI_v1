@@ -2,7 +2,7 @@
 // main.js
 
 // Import the loadTiff function
-import { loadTiff } from './tiffLoader.js';
+import { loadTiff } from './tiffloader.js';
 // Import the GeoJSON layer functions from geojsonLayers.js
 //import { loadGeoJsonLayer, loadPointLayer } from './GeoJson_funcs.js';
 // Import the Basemaps from basemaps.js
