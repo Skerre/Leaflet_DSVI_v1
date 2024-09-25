@@ -9,23 +9,23 @@ import { loadTiff } from './tiffloader.js';
 import { basemaps, addDefaultBasemap, BasemapControl } from './basemaps.js';
 
 // Initialize the map centered on Mali with the default basemap (OSM)
-const map = L.map('map').setView([41.0738487, 28.9548261], 19); // Center on Mali with a zoom level of 6
+const map = L.map('map').setView([17.5707, -3.9962], 6); // Center on Mali with a zoom level of 6
 
 // Add the default basemap on map load
 addDefaultBasemap(map);
 
 // Create a custom icon using an image
-const customIcon = L.icon({
-    iconUrl: 'assets/catinglass.png', // Path to your image
-    iconSize: [200, 200], // Size of the icon [width, height]
-    iconAnchor: [100, 0], // Anchor point of the icon [x, y] relative to its size
-    popupAnchor: [0, 0] // Position of the popup anchor relative to the icon anchor
-});
+// const customIcon = L.icon({
+//     iconUrl: 'assets/catinglass.png', // Path to your image
+//     iconSize: [200, 200], // Size of the icon [width, height]
+//     iconAnchor: [100, 0], // Anchor point of the icon [x, y] relative to its size
+//     popupAnchor: [0, 0] // Position of the popup anchor relative to the icon anchor
+// });
 
-// Add a marker with the custom icon at the specified coordinates
-const marker = L.marker([41.0738487, 28.9548261], { icon: customIcon }).addTo(map);
-// Optional: Bind a popup or tooltip to the marker
-marker.bindPopup("hahahahhahaha.").openPopup();
+// // Add a marker with the custom icon at the specified coordinates
+// const marker = L.marker([41.0738487, 28.9548261], { icon: customIcon }).addTo(map);
+// // Optional: Bind a popup or tooltip to the marker
+// marker.bindPopup("hahahahhahaha.").openPopup();
 
 // Add the custom basemap control to the map
 map.addControl(new BasemapControl());
