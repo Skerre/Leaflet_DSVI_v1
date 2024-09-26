@@ -4,36 +4,23 @@
 // Import the loadTiff function
 import { loadTiff } from './tiffloader.js';
 // Import the GeoJSON layer functions from geojsonLayers.js
-//import { loadGeoJsonLayer, loadPointLayer } from './GeoJson_funcs.js';
-// Import the Basemaps from basemaps.js
-import { basemaps, addDefaultBasemap, BasemapControl } from './basemaps.js';
+// import { loadGeoJsonLayer, styleByMean, tooltipWithMean } from './geojsonLayers.js';
+
+// Import basemap functionality from basemaps.js
+import {BasemapControl, addDefaultBasemap } from './basemaps.js';
 
 // Initialize the map centered on Mali with the default basemap (OSM)
 const map = L.map('map').setView([17.5707, -3.9962], 6); // Center on Mali with a zoom level of 6
 
-// Add the default basemap on map load
+// Add the default basemap on map load (assuming the addDefaultBasemap function is defined elsewhere)
 addDefaultBasemap(map);
 
-// Create a custom icon using an image
-// const customIcon = L.icon({
-//     iconUrl: 'assets/catinglass.png', // Path to your image
-//     iconSize: [200, 200], // Size of the icon [width, height]
-//     iconAnchor: [100, 0], // Anchor point of the icon [x, y] relative to its size
-//     popupAnchor: [0, 0] // Position of the popup anchor relative to the icon anchor
-// });
-
-// // Add a marker with the custom icon at the specified coordinates
-// const marker = L.marker([41.0738487, 28.9548261], { icon: customIcon }).addTo(map);
-// // Optional: Bind a popup or tooltip to the marker
-// marker.bindPopup("hahahahhahaha.").openPopup();
-
-// Add the custom basemap control to the map
+// Initialize the basemap selector to handle basemap switching
 map.addControl(new BasemapControl());
-
 // Define layer variables globally
-let geoJsonLayer, pointLayer
-const tiffLayers = {}; // Object to store TIFF layers with their identifiers
 
+const tiffLayers = {}; // Object to store TIFF layers with their identifiers
+let pointLayer, geoJsonLayer
 // Load GeoJSON layers with tooltips
 // Load the GeoJSON data but don't add them to the map immediately
 loadGeoJsonLayer(map);
@@ -106,7 +93,7 @@ document.getElementById('pointOpacity').addEventListener('input', function () {
 
 //LAST
 
-// Event listeners for toggling layers on and off
+//Event listeners for toggling layers on and off
 document.getElementById('geojsonLayer').addEventListener('change', function () {
     if (this.checked) {
         if (!geoJsonLayer) {
@@ -119,6 +106,7 @@ document.getElementById('geojsonLayer').addEventListener('change', function () {
         map.removeLayer(geoJsonLayer);
     }
 });
+
 // Event listeners for toggling layers on and off
 document.getElementById('pointLayer').addEventListener('change', function () {
     if (this.checked) {
@@ -134,36 +122,6 @@ document.getElementById('pointLayer').addEventListener('change', function () {
 });
 
 
-// NEW
-// // Event listener for toggling the vector layer
-// document.getElementById('toggleVectorLayer').addEventListener('change', function () {
-//     if (this.checked) {
-//         if (geoJsonLayer) {
-//             geoJsonLayer.addTo(map); // Add the layer to the map when checked
-//         } else {
-//             console.error('Vector layer not loaded yet.');
-//         }
-//     } else {
-//         if (geoJsonLayer) {
-//             map.removeLayer(geoJsonLayer); // Remove the layer when unchecked
-//         }
-//     }
-// });
-
-// // Event listener for toggling the point layer
-// document.getElementById('togglePointLayer').addEventListener('change', function () {
-//     if (this.checked) {
-//         if (pointLayer) {
-//             pointLayer.addTo(map); // Add the layer to the map when checked
-//         } else {
-//             console.error('Point layer not loaded yet.');
-//         }
-//     } else {
-//         if (pointLayer) {
-//             map.removeLayer(pointLayer); // Remove the layer when unchecked
-//         }
-//     }
-// });
 
 // Event listener for GeoJSON layer opacity slider
 document.getElementById('geojsonOpacity').addEventListener('input', function () {
@@ -316,21 +274,15 @@ function hideLegend() {
     `;
 }
 
-// Example usage for GeoJSON layer (you can expand for other layers)
+// Example of matching checkbox IDs
 document.getElementById('geojsonLayer').addEventListener('change', function () {
     if (this.checked) {
-        if (!geoJsonLayer) {
-            loadGeoJsonLayer();
-            setTimeout(() => {
-                geoJsonLayer.addTo(map);
-                updateLegend('GeoJSON Layer', ['#ff7800', '#000'], 'This layer shows vector data with orange markers.');
-            }, 500);
-        } else {
-            geoJsonLayer.addTo(map);
-            updateLegend('GeoJSON Layer', ['#ff7800', '#000'], 'This layer shows vector data with orange markers.');
+        if (geoJsonLayer) {
+            geoJsonLayer.addTo(map); // Add the layer when checked
         }
-    } else if (geoJsonLayer) {
-        map.removeLayer(geoJsonLayer);
-        hideLegend();
+    } else {
+        if (geoJsonLayer) {
+            map.removeLayer(geoJsonLayer); // Remove when unchecked
+        }
     }
 });
