@@ -207,3 +207,64 @@ body {
     margin: 0 0 5px 0;
     color: #555;
 }
+
+/* Style for the dropdown menu container */
+
+#floating-control select {
+    width: 150px; /* Set the visible dropdown width */
+    max-width: 150px; /* Ensure the options inside also stay within this width */
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f9f9f9;
+    color: #333;
+    outline: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    white-space: nowrap; /* Prevent text wrapping inside options */
+    overflow: hidden; /* Clip text that overflows */
+    text-overflow: ellipsis; /* Show ellipsis (...) for long text */
+}
+
+/* Optional: Style individual options */
+#floating-control select option {
+    max-width: 150px; /* Match the dropdown's width */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Truncate long text with ellipsis */
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+
+/* Style for the label inside the dropdown */
+#floating-control label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #333;
+    font-weight: bold;
+}
+
+/* Style for the dropdown menu itself */
+#floating-control select {
+    width: 100%;
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f9f9f9;
+    color: #333;
+    outline: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Add hover effect for the dropdown menu */
+#floating-control select:hover {
+    border-color: #888;
+}
+
+/* Add focus effect for the dropdown menu */
+#floating-control select:focus {
+    
+    border-color: #555;
+    box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+}

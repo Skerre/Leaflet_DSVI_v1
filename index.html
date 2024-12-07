@@ -87,7 +87,7 @@
                 <div class="dropdown-container">
                     <div class="layer-checkbox">
                         <input type="checkbox" id="pointLayer">
-                        <label for="pointLayer">Point Layer</label>
+                        <label for="pointLayer">DHS Statistics</label>
                     </div>
                     <div class="opacity-control">
                         <label for="pointOpacity">Opacity</label>
@@ -95,7 +95,7 @@
 						<span id="pointOpacityValue">100%</span>
                     </div>
                 </div>
-                <div id="controls" style="margin: 10px;">
+                <div id="floating-control">
                     <label for="pointValueSelector">Select Value to Display:</label>
                     <select id="pointValueSelector">
                         <!-- Options will be populated dynamically -->
@@ -104,7 +104,9 @@
                 
             </div>
         </div>
-
+        <div id="stats-container" style="display: none; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+            <!-- Statistics will be dynamically populated here -->
+        </div>
         <div id="map"></div>
 
     </div>

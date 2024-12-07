@@ -320,6 +320,7 @@ document.getElementById('tiffLayer1').addEventListener('change', async function 
     } else if (tiffLayers['tiffLayer1']) {
         // Remove the layer from the map and hide the legend
         map.removeLayer(tiffLayers['tiffLayer1']);
+        document.getElementById('stats-container').style.display = 'none'; // Hide stats
         hideLegend();
     }
 });
@@ -328,7 +329,7 @@ document.getElementById('tiffLayer2').addEventListener('change', async function 
     if (this.checked) {
         if (!tiffLayers['tiffLayer2']) {
             // Load the TIFF layer if it hasn't been loaded yet
-            await loadTiff('data/pop_epsg3857.tif', 'tiffLayer2', tiffLayers, map, colorScales.tiffLayer2);
+            await loadTiff('data/pop3.tif', 'tiffLayer2', tiffLayers, map, colorScales.tiffLayer2);
         }
         // Add the layer to the map and update the legend
         tiffLayers['tiffLayer2'].addTo(map);
@@ -341,6 +342,7 @@ document.getElementById('tiffLayer2').addEventListener('change', async function 
     } else if (tiffLayers['tiffLayer2']) {
         // Remove the layer from the map and hide the legend
         map.removeLayer(tiffLayers['tiffLayer2']);
+        document.getElementById('stats-container').style.display = 'none'; // Hide stats
         hideLegend();
     }
 });
@@ -362,6 +364,7 @@ document.getElementById('tiffLayer3').addEventListener('change', async function 
     } else if (tiffLayers['tiffLayer3']) {
         // Remove the layer from the map and hide the legend
         map.removeLayer(tiffLayers['tiffLayer3']);
+        document.getElementById('stats-container').style.display = 'none'; // Hide stats
         hideLegend();
     }
 });

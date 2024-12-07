@@ -28,6 +28,11 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
     const imgData = ctx.createImageData(image.getWidth(), image.getHeight());
     const rasterArray = rasterData[0];
 
+    // Calculate statistics
+    //const stats = calculateStatistics(rasterArray);
+
+    //console.log(`Statistics for ${layerName}:`, stats);
+
     for (let i = 0; i < rasterArray.length; i++) {
         const value = rasterArray[i];
         if (value === -1) {
@@ -45,6 +50,8 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
     ctx.putImageData(imgData, 0, 0);
 
     const imgUrl = canvas.toDataURL();
+    // Display statistics when the layer is added
+    //displayStatistics(layerName, stats);
     tiffLayers[layerName] = L.imageOverlay(imgUrl, bounds, { opacity: 1 });
     tiffLayers[layerName].addTo(map);
 }
@@ -64,3 +71,25 @@ function hexToRgb(hex) {
     const bigint = parseInt(hex.replace('#', ''), 16);
     return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
 }
+
+// Function to calculate raster statistics
+// function calculateStatistics(rasterArray) {
+//     const validValues = rasterArray.filter(value => value !== -1); // Exclude nodata values
+//     const min = Math.min(...validValues);
+//     const max = Math.max(...validValues);
+//     const mean = validValues.reduce((sum, value) => sum + value, 0) / validValues.length;
+
+//     return { min, max, mean };
+// }
+
+// // Function to display statistics
+// function displayStatistics(layerName, stats) {
+//     const statsContainer = document.getElementById('stats-container');
+//     statsContainer.innerHTML = `
+//         <h4>Statistics for ${layerName}</h4>
+//         <p>Min: ${stats.min}</p>
+//         <p>Max: ${stats.max}</p>
+//         <p>Mean: ${stats.mean.toFixed(2)}</p>
+//     `;
+//     statsContainer.style.display = 'block'; // Ensure the stats are visible
+// }
