@@ -25,21 +25,12 @@
         </div>
     </nav>
 
-	<!-- Baselayer selection menu -->
-	<!-- <div id="basemap-menu" class="basemap-menu">
-    <select id="basemapSelector">
-        <option value="osm">OpenStreetMap</option>  
-        <option value="satellite">Satellite</option>
-        <option value="topographic">Topographic</option>
-        <option value="dark">Dark Mode</option>
-    </select>
-	</div> -->
-
     <!-- Main container for sidebar and map -->
     <div class="main-container">
+
         <div id="sidebar">
             <h3>Datasets</h3>
-
+            
             <!-- Vector Layers Dropdown -->
             <div class="layer-group">
                 <button class="dropdown-btn">Vector Layers</button>
@@ -104,10 +95,18 @@
 						<span id="pointOpacityValue">100%</span>
                     </div>
                 </div>
+                <div id="controls" style="margin: 10px;">
+                    <label for="pointValueSelector">Select Value to Display:</label>
+                    <select id="pointValueSelector">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                
             </div>
         </div>
 
         <div id="map"></div>
+
     </div>
 
 

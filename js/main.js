@@ -47,17 +47,83 @@ function loadGeoJsonLayer() {
     fetch('data/sample.geojson')
         .then(response => response.json())
         .then(data => {
-            geoJsonLayer = L.geoJSON(data);
-        });
+            geoJsonLayer = L.geoJSON(data, {
+                style: (feature) => {
+                    // Define default styling for the vector layer
+                    return {
+                        color: "#3388ff",
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.5
+                    };
+                },
+                onEachFeature: (feature, layer) => {
+                    if (feature.properties) {
+                        const tooltipContent = Object.entries(feature.properties)
+                            .map(([key, value]) => `<b>${key}:</b> ${value}`)
+                            .join('<br>');
+                
+                        layer.bindTooltip(tooltipContent, {
+                            permanent: false,
+                            direction: 'top'
+                        });
+                    }
+                }
+            });
+        })
+        .catch(err => console.error('Error loading GeoJSON layer:', err));
 }
 
 //Function to load GeoJSON points as a point layer
+// function loadPointLayer() {
+//     fetch('data/sample-points.geojson')
+//         .then(response => response.json())
+//         .then(data => {
+//             pointLayer = L.geoJSON(data, {
+//                 pointToLayer: (feature, latlng) => {
+//                     return L.circleMarker(latlng, {
+//                         radius: 5,
+//                         fillColor: "#ff7800",
+//                         color: "#000",
+//                         weight: 1,
+//                         opacity: 1,
+//                         fillOpacity: 0.8
+//                     });
+//                 }
+//             });
+//         });
+// }
+
+// Function to update tooltips based on the selected property
+function updateTooltip(feature, layer) {
+    const selectedProperty = document.getElementById('pointValueSelector').value;
+
+    // Check if the selected property exists in the feature
+    if (feature.properties && feature.properties[selectedProperty]) {
+        layer.bindTooltip(`Value: ${feature.properties[selectedProperty]}`, {
+            permanent: false,
+            direction: 'top'
+        });
+    } else {
+        layer.bindTooltip('No value available', {
+            permanent: false,
+            direction: 'top'
+        });
+    }
+}
+
+// Function to load GeoJSON points as a point layer
 function loadPointLayer() {
     fetch('data/sample-points.geojson')
         .then(response => response.json())
         .then(data => {
+            // Populate the dropdown with properties from the first feature
+            populateDropdown(data);
+
+            // Create the point layer
             pointLayer = L.geoJSON(data, {
                 pointToLayer: (feature, latlng) => {
+                    // Create a circle marker for each point
                     return L.circleMarker(latlng, {
                         radius: 5,
                         fillColor: "#ff7800",
@@ -66,16 +132,56 @@ function loadPointLayer() {
                         opacity: 1,
                         fillOpacity: 0.8
                     });
+                },
+                onEachFeature: (feature, layer) => {
+                    // Bind tooltips dynamically
+                    updateTooltip(feature, layer);
                 }
             });
-        });
+        })
+        .catch(err => console.error('Error loading point layer:', err));
 }
+
+// Populate the dropdown menu with property keys dynamically
+function populateDropdown(data) {
+    const selector = document.getElementById('pointValueSelector');
+    const firstFeature = data.features[0];
+
+    if (firstFeature && firstFeature.properties) {
+        const properties = Object.keys(firstFeature.properties);
+
+        // Populate the dropdown
+        properties.forEach(prop => {
+            const option = document.createElement('option');
+            option.value = prop;
+            option.textContent = prop;
+            selector.appendChild(option);
+        });
+    } else {
+        console.error('No properties found in the GeoJSON data.');
+    }
+}
+
+
+
 
 // Function to update the opacity percentage display
 function updateOpacityValue(slider, display) {
     const value = Math.round(slider.value * 100); // Convert to percentage
     display.textContent = `${value}%`; // Update the text content
 }
+
+//event listener point dropdown menu
+document.getElementById('pointValueSelector').addEventListener('change', function () {
+    if (pointLayer) {
+        pointLayer.eachLayer(layer => {
+            // Update tooltip for each point
+            if (layer.feature) {
+                updateTooltip(layer.feature, layer);
+            }
+        });
+    }
+});
 
 // Add event listeners to update opacity percentage display when sliders are moved
 document.getElementById('geojsonOpacity').addEventListener('input', function () {
@@ -121,12 +227,16 @@ document.getElementById('geojsonLayer').addEventListener('change', function () {
     if (this.checked) {
         if (!geoJsonLayer) {
             loadGeoJsonLayer();
-            setTimeout(() => { geoJsonLayer.addTo(map); }, 500);
+            setTimeout(() => {
+                if (geoJsonLayer) geoJsonLayer.addTo(map);
+            }, 500); // Delay to ensure the layer is loaded before adding it
         } else {
             geoJsonLayer.addTo(map);
         }
-    } else if (geoJsonLayer) {
-        map.removeLayer(geoJsonLayer);
+    } else {
+        if (geoJsonLayer) {
+            map.removeLayer(geoJsonLayer);
+        }
     }
 });
 
@@ -135,15 +245,18 @@ document.getElementById('pointLayer').addEventListener('change', function () {
     if (this.checked) {
         if (!pointLayer) {
             loadPointLayer();
-            setTimeout(() => { pointLayer.addTo(map); }, 500);
+            setTimeout(() => {
+                if (pointLayer) pointLayer.addTo(map);
+            }, 500); // Delay to ensure the layer is loaded before adding it
         } else {
             pointLayer.addTo(map);
         }
-    } else if (pointLayer) {
-        map.removeLayer(pointLayer);
+    } else {
+        if (pointLayer) {
+            map.removeLayer(pointLayer);
+        }
     }
 });
-
 
 
 // Event listener for GeoJSON layer opacity slider
