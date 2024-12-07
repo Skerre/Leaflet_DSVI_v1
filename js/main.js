@@ -2,7 +2,7 @@
 // main.js
 
 // Import the loadTiff function
-import { loadTiff } from './tiffloader.js';
+import { loadTiff } from './tiffloader_original.js';
 // Import the GeoJSON layer functions from geojsonLayers.js
 // import { loadGeoJsonLayer, styleByMean, tooltipWithMean } from './geojsonLayers.js';
 
@@ -11,7 +11,7 @@ import {BasemapControl, addDefaultBasemap } from './basemaps.js';
 
 // Initialize the map centered on Mali with the default basemap (OSM)
 const map = L.map('map').setView([17.5707, -3.9962], 6); // Center on Mali with a zoom level of 6
-
+console.log("Map CRS:", map.options.crs.code);    
 // Add the default basemap on map load (assuming the addDefaultBasemap function is defined elsewhere)
 addDefaultBasemap(map);
 
@@ -83,6 +83,14 @@ document.getElementById('tiffOpacity2').addEventListener('input', function () {
         tiffLayers['tiffLayer2'].setOpacity(this.value);
     }
 });
+
+document.getElementById('tiffOpacity3').addEventListener('input', function () {
+    updateOpacityValue(this, document.getElementById('tiffOpacityValue3'));
+    if (tiffLayers['tiffLayer3']) {
+        tiffLayers['tiffLayer3'].setOpacity(this.value);
+    }
+});
+
 
 document.getElementById('pointOpacity').addEventListener('input', function () {
     updateOpacityValue(this, document.getElementById('pointOpacityValue'));
@@ -193,7 +201,7 @@ document.getElementById('tiffLayer2').addEventListener('change', async function 
     if (this.checked) {
         if (!tiffLayers['tiffLayer2']) {
             // Load the TIFF layer if it hasn't been loaded yet
-            await loadTiff('data/pop3.tif', 'tiffLayer2', tiffLayers, map);
+            await loadTiff('data/pop_epsg3857.tif', 'tiffLayer2', tiffLayers, map);
             tiffLayers['tiffLayer2'].addTo(map);
             // Update the legend specifically for this raster layer
             updateLegend('Sample TIFF Layer 2', ['#000', '#00f', '#ff0'], 'This raster layer shows data with a color gradient, reflecting different data intensities.');
@@ -207,6 +215,28 @@ document.getElementById('tiffLayer2').addEventListener('change', async function 
         map.removeLayer(tiffLayers['tiffLayer2']);
         hideLegend(); // Revert the legend to its default state
         tiffLayers['tiffLayer2'] = null; // Clear the reference to ensure it doesn't persist
+    }
+});
+
+// Event listener for the third TIFF layer
+document.getElementById('tiffLayer3').addEventListener('change', async function () {
+    if (this.checked) {
+        if (!tiffLayers['tiffLayer3']) {
+            // Load the TIFF layer if it hasn't been loaded yet
+            await loadTiff('data/ln_May23_HR_IR_MIS_2021_mean_agg_sv_sc_clip.tif', 'tiffLayer3', tiffLayers, map);
+            tiffLayers['tiffLayer3'].addTo(map);
+            // Update the legend specifically for this raster layer
+            updateLegend('Social vulnerability', ["#0000ff", "#00ff00", "#ffff00", "#ff7f00", "#ff0000"], 'This raster layer shows data with a color gradient, reflecting different data intensities.');
+        } else {
+            // Add the existing layer to the map
+            tiffLayers['tiffLayer3'].addTo(map);
+            updateLegend('Social vulnerability', ["#0000ff", "#00ff00", "#ffff00", "#ff7f00", "#ff0000"], 'This raster layer shows data with a color gradient, reflecting different data intensities.');
+        }
+    } else if (tiffLayers['tiffLayer3']) {
+        // Remove the layer from the map if it exists
+        map.removeLayer(tiffLayers['tiffLayer3']);
+        hideLegend(); // Revert the legend to its default state
+        tiffLayers['tiffLayer3'] = null; // Clear the reference to ensure it doesn't persist
     }
 });
 
