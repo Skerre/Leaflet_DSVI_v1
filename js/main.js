@@ -29,8 +29,14 @@ loadPointLayer(map);
 
 const colorScales = {
     tiffLayer1: {
-        ranges: [0, 50, 100, 150, 200],
-        colors: ['#000000', '#0000FF', '#00FF00', '#FFFF00', '#FF0000'] // Black to Red
+        ranges: [0, 2, 5, 10, 25],
+        colors: [
+            'rgba(0, 0, 0, 1)',    // Black, fully opaque
+            'rgba(0, 0, 255, 0.8)', // Blue, semi-transparent
+            'rgba(0, 255, 0, 0.6)', // Green, more transparent
+            'rgba(255, 255, 0, 0.4)', // Yellow, even more transparent
+            'rgba(255, 0, 0, 0.2)'  // Red, mostly transparent
+        ]
     },
     tiffLayer2: {
         ranges: [0, 25, 50, 75, 100],
@@ -38,6 +44,10 @@ const colorScales = {
     },
     tiffLayer3: {
         ranges: [0, 0.2, 0.4, 0.6, 0.8, 1],
+        colors: ['#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'] // Blue to Red
+    },
+    tiffLayer4: {
+        ranges: [0, 2, 4, 6, 8, 10],
         colors: ['#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'] // Blue to Red
     }
 };
@@ -74,25 +84,6 @@ function loadGeoJsonLayer() {
         .catch(err => console.error('Error loading GeoJSON layer:', err));
 }
 
-//Function to load GeoJSON points as a point layer
-// function loadPointLayer() {
-//     fetch('data/sample-points.geojson')
-//         .then(response => response.json())
-//         .then(data => {
-//             pointLayer = L.geoJSON(data, {
-//                 pointToLayer: (feature, latlng) => {
-//                     return L.circleMarker(latlng, {
-//                         radius: 5,
-//                         fillColor: "#ff7800",
-//                         color: "#000",
-//                         weight: 1,
-//                         opacity: 1,
-//                         fillOpacity: 0.8
-//                     });
-//                 }
-//             });
-//         });
-// }
 
 // Function to update tooltips based on the selected property
 function updateTooltip(feature, layer) {
@@ -114,7 +105,7 @@ function updateTooltip(feature, layer) {
 
 // Function to load GeoJSON points as a point layer
 function loadPointLayer() {
-    fetch('data/sample-points.geojson')
+    fetch('data/sample-points_2.geojson')
         .then(response => response.json())
         .then(data => {
             // Populate the dropdown with properties from the first feature
@@ -163,8 +154,6 @@ function populateDropdown(data) {
 }
 
 
-
-
 // Function to update the opacity percentage display
 function updateOpacityValue(slider, display) {
     const value = Math.round(slider.value * 100); // Convert to percentage
@@ -184,6 +173,8 @@ document.getElementById('pointValueSelector').addEventListener('change', functio
 });
 
 // Add event listeners to update opacity percentage display when sliders are moved
+// VECTOR
+
 document.getElementById('geojsonOpacity').addEventListener('input', function () {
     updateOpacityValue(this, document.getElementById('geojsonOpacityValue'));
     if (geoJsonLayer) {
@@ -191,6 +182,8 @@ document.getElementById('geojsonOpacity').addEventListener('input', function () 
     }
 });
 
+
+// event listener TIFF 1
 document.getElementById('tiffOpacity1').addEventListener('input', function () {
     updateOpacityValue(this, document.getElementById('tiffOpacityValue1'));
     if (tiffLayers['tiffLayer1']) {
@@ -198,20 +191,29 @@ document.getElementById('tiffOpacity1').addEventListener('input', function () {
     }
 });
 
+// event listener TIFF 2
 document.getElementById('tiffOpacity2').addEventListener('input', function () {
     updateOpacityValue(this, document.getElementById('tiffOpacityValue2'));
     if (tiffLayers['tiffLayer2']) {
         tiffLayers['tiffLayer2'].setOpacity(this.value);
     }
 });
-
+// event listener TIFF 3
 document.getElementById('tiffOpacity3').addEventListener('input', function () {
     updateOpacityValue(this, document.getElementById('tiffOpacityValue3'));
     if (tiffLayers['tiffLayer3']) {
         tiffLayers['tiffLayer3'].setOpacity(this.value);
     }
 });
+// event listener TIFF 4
+document.getElementById('tiffOpacity4').addEventListener('input', function () {
+    updateOpacityValue(this, document.getElementById('tiffOpacityValue4'));
+    if (tiffLayers['tiffLayer4']) {
+        tiffLayers['tiffLayer4'].setOpacity(this.value);
+    }
+});
 
+// event listener POINTS
 
 document.getElementById('pointOpacity').addEventListener('input', function () {
     updateOpacityValue(this, document.getElementById('pointOpacityValue'));
@@ -220,9 +222,9 @@ document.getElementById('pointOpacity').addEventListener('input', function () {
     }
 });
 
-//LAST
 
 //Event listeners for toggling layers on and off
+// VECTOR
 document.getElementById('geojsonLayer').addEventListener('change', function () {
     if (this.checked) {
         if (!geoJsonLayer) {
@@ -241,6 +243,7 @@ document.getElementById('geojsonLayer').addEventListener('change', function () {
 });
 
 // Event listeners for toggling layers on and off
+// POINTS
 document.getElementById('pointLayer').addEventListener('change', function () {
     if (this.checked) {
         if (!pointLayer) {
@@ -274,40 +277,13 @@ document.getElementById('pointOpacity').addEventListener('input', function () {
     }
 });
 
-// Generic function to handle TIFF layer toggling
-function handleTiffLayerToggle(layerName, url, opacitySliderId) {
-    document.getElementById(layerName).addEventListener('change', async function () {
-        if (this.checked) {
-            if (!tiffLayers[layerName]) {
-                await loadTiff(url, layerName, tiffLayers, map); // Call the external function
-            } else {
-                tiffLayers[layerName].addTo(map);
-            }
-        } else if (tiffLayers[layerName]) {
-            map.removeLayer(tiffLayers[layerName]);
-        }
-    });
-
-
-    // Event listener for TIFF layer opacity slider
-    document.getElementById(opacitySliderId).addEventListener('input', function () {
-        if (tiffLayers[layerName]) {
-            tiffLayers[layerName].setOpacity(this.value);
-        }
-    });
-}
-
-// Example of how to set up multiple TIFF layers with different files and sliders
-// handleTiffLayerToggle('tiffLayer1', 'data/cell3.tif', 'tiffOpacity1');
-// handleTiffLayerToggle('tiffLayer2', 'data/pop3.tif', 'tiffOpacity2');
-
 
 // Event listener for the first TIFF layer
 document.getElementById('tiffLayer1').addEventListener('change', async function () {
     if (this.checked) {
         if (!tiffLayers['tiffLayer1']) {
             // Load the TIFF layer if it hasn't been loaded yet
-            await loadTiff('data/cell3.tif', 'tiffLayer1', tiffLayers, map, colorScales.tiffLayer1);
+            await loadTiff('data/celltower_density_epsg4326_lowres.tif', 'tiffLayer1', tiffLayers, map, colorScales.tiffLayer1);
         }
         // Add the layer to the map and update the legend
         tiffLayers['tiffLayer1'].addTo(map);
@@ -329,7 +305,7 @@ document.getElementById('tiffLayer2').addEventListener('change', async function 
     if (this.checked) {
         if (!tiffLayers['tiffLayer2']) {
             // Load the TIFF layer if it hasn't been loaded yet
-            await loadTiff('data/pop3.tif', 'tiffLayer2', tiffLayers, map, colorScales.tiffLayer2);
+            await loadTiff('data/pop_epsg4326_lowres.tif', 'tiffLayer2', tiffLayers, map, colorScales.tiffLayer2);
         }
         // Add the layer to the map and update the legend
         tiffLayers['tiffLayer2'].addTo(map);
@@ -351,7 +327,7 @@ document.getElementById('tiffLayer3').addEventListener('change', async function 
     if (this.checked) {
         if (!tiffLayers['tiffLayer3']) {
             // Load the TIFF layer if it hasn't been loaded yet
-            await loadTiff('data/ln_May23_HR_IR_MIS_2021_mean_agg_sv_sc_clip.tif', 'tiffLayer3', tiffLayers, map, colorScales.tiffLayer3);
+            await loadTiff('data/SV_May23_HR_IR_MIS_2021_agg_epsg4326_lowres.tif', 'tiffLayer3', tiffLayers, map, colorScales.tiffLayer3);
         }
         // Add the layer to the map and update the legend
         tiffLayers['tiffLayer3'].addTo(map);
@@ -364,6 +340,28 @@ document.getElementById('tiffLayer3').addEventListener('change', async function 
     } else if (tiffLayers['tiffLayer3']) {
         // Remove the layer from the map and hide the legend
         map.removeLayer(tiffLayers['tiffLayer3']);
+        document.getElementById('stats-container').style.display = 'none'; // Hide stats
+        hideLegend();
+    }
+});
+
+document.getElementById('tiffLayer4').addEventListener('change', async function () {
+    if (this.checked) {
+        if (!tiffLayers['tiffLayer4']) {
+            // Load the TIFF layer if it hasn't been loaded yet
+            await loadTiff('data/rwi_density_epsg4326_lowres.tif', 'tiffLayer4', tiffLayers, map, colorScales.tiffLayer4);
+        }
+        // Add the layer to the map and update the legend
+        tiffLayers['tiffLayer4'].addTo(map);
+        updateLegend(
+            'Relative Wealth',
+            colorScales.tiffLayer4.colors,
+            'Gradient representing Relative Wealth.',
+            ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
+        );
+    } else if (tiffLayers['tiffLayer4']) {
+        // Remove the layer from the map and hide the legend
+        map.removeLayer(tiffLayers['tiffLayer4']);
         document.getElementById('stats-container').style.display = 'none'; // Hide stats
         hideLegend();
     }
@@ -384,11 +382,6 @@ dropdownButtons.forEach(button => {
     });
 });
 
-
-//
-// ADDED NEWLY 24.09
-//
-
 // Function to initialize the legend with default content
 function initializeLegend() {
     const legend = document.getElementById('legend');
@@ -401,8 +394,6 @@ function initializeLegend() {
     `;
     legend.style.display = 'block'; // Ensure the legend is visible by default
 }
-
-
 
 // Call the initializeLegend function on map load
 initializeLegend();
