@@ -98,7 +98,8 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
 
     for (let i = 0; i < rasterArray.length; i++) {
         const value = rasterArray[i];
-        if (value === -1) {
+        // assumes that NA values are -1
+        if (value === -1 || value === 0) {
             imgData.data[4 * i + 3] = 0; // Fully transparent
             continue;
         }
@@ -119,8 +120,6 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
     // Enable mouse hover tooltips for this layer
     addHoverTooltip(map, rasterArray, bounds, image.getWidth(), image.getHeight(), layerName, tiffLayers);
 }
-
-
 
 function getColorForValue(value, colorScale) {
     const { ranges, colors } = colorScale;

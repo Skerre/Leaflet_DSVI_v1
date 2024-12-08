@@ -6,11 +6,28 @@ import { loadTiff } from './test_tiff_loader.js';
 // Import the GeoJSON layer functions from geojsonLayers.js
 // import { loadGeoJsonLayer, styleByMean, tooltipWithMean } from './geojsonLayers.js';
 
+import { loadAdminLayer } from './adminLoader.js';
+
 // Import basemap functionality from basemaps.js
 import {BasemapControl, addDefaultBasemap } from './basemaps.js';
 
 // Initialize the map centered on Mali with the default basemap (OSM)
-const map = L.map('map').setView([17.5707, -3.9962], 6); // Center on Mali with a zoom level of 6
+// Initialize the map
+const map = L.map('map').setView([17.5707, -3.9962], 6);
+
+// Define style options
+const adm1Style = { color: "#ff7800", weight: 2, opacity: 1, fillOpacity: 0.6 };
+const adm2Style = { color: "#00ff00", weight: 1, opacity: 0.8, fillOpacity: 0.4 };
+
+// Define tooltip generator
+const adminTooltip = (properties) => {
+    return `<b>${properties.name}</b><br>Population: ${properties.population || "N/A"}`;
+};
+
+// Load administrative layers
+//loadAdminLayer('data/sample_adm1_vector.geojson', 'adm1Layer', map, adm1Style, adminTooltip);
+//loadAdminLayer('data/sample_adm2_vector.geojson', 'adm2Layer', map, adm2Style, adminTooltip);
+
 
 // Add the default basemap on map load (assuming the addDefaultBasemap function is defined elsewhere)
 addDefaultBasemap(map);
@@ -26,17 +43,10 @@ let pointLayer, geoJsonLayer
 loadGeoJsonLayer(map);
 loadPointLayer(map);
 
-
 const colorScales = {
     tiffLayer1: {
         ranges: [0, 2, 5, 10, 25],
-        colors: [
-            'rgba(0, 0, 0, 1)',    // Black, fully opaque
-            'rgba(0, 0, 255, 0.8)', // Blue, semi-transparent
-            'rgba(0, 255, 0, 0.6)', // Green, more transparent
-            'rgba(255, 255, 0, 0.4)', // Yellow, even more transparent
-            'rgba(255, 0, 0, 0.2)'  // Red, mostly transparent
-        ]
+        colors: ['#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'] // Blue to Red
     },
     tiffLayer2: {
         ranges: [0, 25, 50, 75, 100],
@@ -47,14 +57,14 @@ const colorScales = {
         colors: ['#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'] // Blue to Red
     },
     tiffLayer4: {
-        ranges: [0, 2, 4, 6, 8, 10],
+        ranges: [0.1, 2, 4, 6, 8, 10],
         colors: ['#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'] // Blue to Red
     }
 };
 
 //Function to load GeoJSON data for the vector layer
 function loadGeoJsonLayer() {
-    fetch('data/sample.geojson')
+    fetch('data/sample_adm1_vector.geojson')
         .then(response => response.json())
         .then(data => {
             geoJsonLayer = L.geoJSON(data, {
@@ -152,7 +162,6 @@ function populateDropdown(data) {
         console.error('No properties found in the GeoJSON data.');
     }
 }
-
 
 // Function to update the opacity percentage display
 function updateOpacityValue(slider, display) {
@@ -366,7 +375,6 @@ document.getElementById('tiffLayer4').addEventListener('change', async function 
         hideLegend();
     }
 });
-
 
 // Dropdown menu functionality
 const dropdownButtons = document.querySelectorAll('.dropdown-btn');
