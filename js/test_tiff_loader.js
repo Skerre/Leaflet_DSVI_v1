@@ -1,5 +1,73 @@
 // tiffLoader.js
 
+function addHoverTooltip(map, rasterArray, bounds, width, height, layerName, tiffLayers) {
+    // Create a tooltip instance
+    const tooltip = L.tooltip({ permanent: false, direction: 'top', offset: [0, -10] });
+
+    // Event: Mouse moves on the map
+    function onMouseMove(e) {
+        if (!bounds.contains(e.latlng)) {
+            map.closeTooltip(tooltip);
+            return;
+        }
+
+        const latLng = e.latlng;
+        const x = Math.floor((latLng.lng - bounds.getWest()) / (bounds.getEast() - bounds.getWest()) * width);
+        const y = Math.floor((bounds.getNorth() - latLng.lat) / (bounds.getNorth() - bounds.getSouth()) * height);
+
+        const index = y * width + x;
+
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+            const value = rasterArray[index];
+            if (value !== undefined && !isNaN(value)) {
+                tooltip.setLatLng(e.latlng).setContent(`Value: ${value.toFixed(2)}`);
+                tooltip.addTo(map);
+            } else {
+                map.closeTooltip(tooltip);
+            }
+        } else {
+            map.closeTooltip(tooltip);
+        }
+    }
+
+    // Event: Mouse leaves the map
+    function onMouseOut() {
+        map.closeTooltip(tooltip);
+    }
+
+    // Attach events when the raster layer is added
+    function attachEvents() {
+        map.on('mousemove', onMouseMove);
+        map.on('mouseout', onMouseOut);
+    }
+
+    // Detach events when the raster layer is removed
+    function detachEvents() {
+        map.off('mousemove', onMouseMove);
+        map.off('mouseout', onMouseOut);
+        map.closeTooltip(tooltip);
+    }
+
+    // Bind events to the layer lifecycle
+    map.on('layeradd', (e) => {
+        if (e.layer === tiffLayers[layerName]) {
+            attachEvents();
+        }
+    });
+
+    map.on('layerremove', (e) => {
+        if (e.layer === tiffLayers[layerName]) {
+            detachEvents();
+        }
+    });
+
+    // Explicitly trigger `layeradd` when the layer is first added
+    if (map.hasLayer(tiffLayers[layerName])) {
+        attachEvents();
+    }
+}
+
+// Updated `loadTiff` function to include the hover logic
 export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
     const response = await fetch(url);
     const arrayBuffer = await response.arrayBuffer();
@@ -15,23 +83,18 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
     const minY = maxY - pixelScale[1] * image.getHeight();
 
     const bounds = L.latLngBounds([
-        [minY, minX], 
+        [minY, minX],
         [maxY, maxX]
     ]);
 
     const rasterData = await image.readRasters();
+    const rasterArray = rasterData[0]; // Assume single-band TIFF
+
     const canvas = document.createElement('canvas');
     canvas.width = image.getWidth();
     canvas.height = image.getHeight();
     const ctx = canvas.getContext('2d');
-
     const imgData = ctx.createImageData(image.getWidth(), image.getHeight());
-    const rasterArray = rasterData[0];
-
-    // Calculate statistics
-    //const stats = calculateStatistics(rasterArray);
-
-    //console.log(`Statistics for ${layerName}:`, stats);
 
     for (let i = 0; i < rasterArray.length; i++) {
         const value = rasterArray[i];
@@ -50,11 +113,14 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
     ctx.putImageData(imgData, 0, 0);
 
     const imgUrl = canvas.toDataURL();
-    // Display statistics when the layer is added
-    //displayStatistics(layerName, stats);
     tiffLayers[layerName] = L.imageOverlay(imgUrl, bounds, { opacity: 1 });
     tiffLayers[layerName].addTo(map);
+
+    // Enable mouse hover tooltips for this layer
+    addHoverTooltip(map, rasterArray, bounds, image.getWidth(), image.getHeight(), layerName, tiffLayers);
 }
+
+
 
 function getColorForValue(value, colorScale) {
     const { ranges, colors } = colorScale;

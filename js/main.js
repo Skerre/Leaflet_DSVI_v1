@@ -11,10 +11,10 @@ import {BasemapControl, addDefaultBasemap } from './basemaps.js';
 
 // Initialize the map centered on Mali with the default basemap (OSM)
 const map = L.map('map').setView([17.5707, -3.9962], 6); // Center on Mali with a zoom level of 6
-console.log("Map CRS:", map.options.crs.code);    
+
 // Add the default basemap on map load (assuming the addDefaultBasemap function is defined elsewhere)
 addDefaultBasemap(map);
-
+console.log("Map CRS:", map.options.crs.code);    
 // Initialize the basemap selector to handle basemap switching
 map.addControl(new BasemapControl());
 // Define layer variables globally
