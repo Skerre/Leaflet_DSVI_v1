@@ -211,7 +211,6 @@ body {
 /* Style for the dropdown menu container */
 
 #floating-control select {
-    margin-top: 50px;
     width: 150px; /* Set the visible dropdown width */
     max-width: 150px; /* Ensure the options inside also stay within this width */
     padding: 5px;
@@ -247,8 +246,6 @@ body {
 
 /* Style for the dropdown menu itself */
 #floating-control select {
-    margin-top: 25px;
-    margin-left: 25px;
     width: 100%;
     padding: 15px;
     font-size: 14px;

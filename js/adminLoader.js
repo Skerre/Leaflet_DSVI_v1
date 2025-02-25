@@ -1,12 +1,11 @@
-// Function to load GeoJSON for administrative boundaries
 export function loadAdminLayer(filePath, layerName, map, styleOptions = {}, tooltipGenerator = null) {
     fetch(filePath)
         .then(response => response.json())
         .then(data => {
-            // Create a new GeoJSON layer
+            // Create the GeoJSON layer
             const adminLayer = L.geoJSON(data, {
                 style: (feature) => {
-                    // Apply the provided style options or a default style
+                    // Apply default or provided styles
                     return {
                         color: styleOptions.color || "#3388ff",
                         weight: styleOptions.weight || 2,
@@ -15,7 +14,7 @@ export function loadAdminLayer(filePath, layerName, map, styleOptions = {}, tool
                     };
                 },
                 onEachFeature: (feature, layer) => {
-                    // Generate tooltips for administrative boundaries
+                    // Apply tooltip generator if provided
                     if (tooltipGenerator && feature.properties) {
                         const tooltipContent = tooltipGenerator(feature.properties);
                         layer.bindTooltip(tooltipContent, {
@@ -26,11 +25,9 @@ export function loadAdminLayer(filePath, layerName, map, styleOptions = {}, tool
                 }
             });
 
-            // Add the layer to the map
+            // Add the layer to the map and store it globally for toggling
             adminLayer.addTo(map);
-
-            // Store the layer globally for toggling (optional)
             window[layerName] = adminLayer;
         })
-        .catch(err => console.error(`Error loading GeoJSON layer from ${filePath}:`, err));
+        .catch(err => console.error(`Error loading GeoJSON from ${filePath}:`, err));
 }

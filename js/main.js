@@ -6,7 +6,10 @@ import { loadTiff } from './test_tiff_loader.js';
 // Import the GeoJSON layer functions from geojsonLayers.js
 // import { loadGeoJsonLayer, styleByMean, tooltipWithMean } from './geojsonLayers.js';
 
-import { loadAdminLayer } from './adminLoader.js';
+
+// this will be relevant later again (15.12.2024)
+
+// import { loadAdminLayer } from './adminLoader.js';
 
 // Import basemap functionality from basemaps.js
 import {BasemapControl, addDefaultBasemap } from './basemaps.js';
@@ -14,20 +17,6 @@ import {BasemapControl, addDefaultBasemap } from './basemaps.js';
 // Initialize the map centered on Mali with the default basemap (OSM)
 // Initialize the map
 const map = L.map('map').setView([17.5707, -3.9962], 6);
-
-// Define style options
-const adm1Style = { color: "#ff7800", weight: 2, opacity: 1, fillOpacity: 0.6 };
-const adm2Style = { color: "#00ff00", weight: 1, opacity: 0.8, fillOpacity: 0.4 };
-
-// Define tooltip generator
-const adminTooltip = (properties) => {
-    return `<b>${properties.name}</b><br>Population: ${properties.population || "N/A"}`;
-};
-
-// Load administrative layers
-//loadAdminLayer('data/sample_adm1_vector.geojson', 'adm1Layer', map, adm1Style, adminTooltip);
-//loadAdminLayer('data/sample_adm2_vector.geojson', 'adm2Layer', map, adm2Style, adminTooltip);
-
 
 // Add the default basemap on map load (assuming the addDefaultBasemap function is defined elsewhere)
 addDefaultBasemap(map);
