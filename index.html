@@ -3,31 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Development tool for DSVI data visualization</title>
+    <title>Development Tool for DSVI Data Visualization</title>
+    
+    <!-- Updated CSS path - place styles.css in the root directory -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <meta name="description" content="Interactive map visualization tool for development and social vulnerability data">
+    
+    <!-- Critical inline styles to ensure page rendering -->
+    <style>
+        /* Only critical layout styles to ensure the page functions */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
 </head>
 <body>
     <!-- Top Navigation Bar -->
     <nav id="navbar">
         <div class="navbar-logo navbar-logo-left">
-            <!-- Left logo (add image or text here) -->
-            <img src="assets/sdgai.png" alt="Left Logo" class="logo-image">
+            <img src="assets/sdgai.png" alt="SDG AI Logo" class="logo-image">
         </div>
         <ul class="navbar-menu">
             <li><a href="index.html">Map</a></li>
-            <li><a href="html/about.html">About us</a></li>
-            <li><a href="html/more.html">More information</a></li>
+            <li><a href="html/about.html">About Us</a></li>
+            <li><a href="html/more.html">More Information</a></li>
         </ul>
         <div class="navbar-logo navbar-logo-right">
-            <!-- Right logo (add image or text here) -->
-            <img src="assets/undp_logo.png" alt="Right Logo" class="logo-image">
+            <img src="assets/undp_logo.png" alt="UNDP Logo" class="logo-image">
         </div>
     </nav>
 
     <!-- Main container for sidebar and map -->
     <div class="main-container">
-
         <div id="sidebar">
             <h3>Datasets</h3>
             
@@ -35,23 +46,64 @@
             <div class="layer-group">
                 <button class="dropdown-btn">Vector Layers</button>
                 <div class="dropdown-container">
+                    <!-- Admin Level 1 Layer -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="geojsonLayer">
                         <label for="geojsonLayer">Admin Level 1 Statistics</label>
                     </div>
-                    <div class="opacity-control">
-                        <label for="geojsonOpacity">Opacity</label>
-                        <input type="range" id="geojsonOpacity" min="0" max="1" step="0.1" value="1">
-						<span id="geojsonOpacityValue">100%</span>
+                    
+                    <!-- Admin Level 1 Controls -->
+                    <div class="layer-controls">
+                        <div class="opacity-control">
+                            <label for="geojsonOpacity">Opacity</label>
+                            <input type="range" id="geojsonOpacity" min="0" max="1" step="0.1" value="0.5">
+                            <span id="geojsonOpacityValue">50%</span>
+                        </div>
+                        
+                        <div class="attribute-selector">
+                            <label for="vectorAttribute1">Attribute to Display:</label>
+                            <select id="vectorAttribute1">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+                        
+                        <div class="color-ramp-selector">
+                            <label for="vectorColorRamp1">Color Scheme:</label>
+                            <select id="vectorColorRamp1">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                            <div id="vectorColorPreview1" class="color-preview"></div>
+                        </div>
                     </div>
+                    
+                    <!-- Admin Level 2 Layer -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="geojsonLayer2">
-                        <label for="geojsonLayer">Admin Level 2 Statistics</label>
+                        <label for="geojsonLayer2">Admin Level 2 Statistics</label>
                     </div>
-                    <div class="opacity-control">
-                        <label for="geojsonOpacity2">Opacity</label>
-                        <input type="range" id="geojsonOpacity2" min="0" max="1" step="0.1" value="1">
-						<span id="geojsonOpacityValue2">100%</span>
+                    
+                    <!-- Admin Level 2 Controls -->
+                    <div class="layer-controls">
+                        <div class="opacity-control">
+                            <label for="geojsonOpacity2">Opacity</label>
+                            <input type="range" id="geojsonOpacity2" min="0" max="1" step="0.1" value="0.4">
+                            <span id="geojsonOpacityValue2">40%</span>
+                        </div>
+                        
+                        <div class="attribute-selector">
+                            <label for="vectorAttribute2">Attribute to Display:</label>
+                            <select id="vectorAttribute2">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+                        
+                        <div class="color-ramp-selector">
+                            <label for="vectorColorRamp2">Color Scheme:</label>
+                            <select id="vectorColorRamp2">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                            <div id="vectorColorPreview2" class="color-preview"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -67,7 +119,7 @@
                     <div class="opacity-control">
                         <label for="tiffOpacity1">Opacity</label>
                         <input type="range" id="tiffOpacity1" min="0" max="1" step="0.1" value="1">
-						<span id="tiffOpacityValue1">100%</span>
+                        <span id="tiffOpacityValue1">100%</span>
                     </div>
                     <div class="layer-checkbox">
                         <input type="checkbox" id="tiffLayer2">
@@ -76,7 +128,7 @@
                     <div class="opacity-control">
                         <label for="tiffOpacity2">Opacity</label>
                         <input type="range" id="tiffOpacity2" min="0" max="1" step="0.1" value="1">
-						<span id="tiffOpacityValue2">100%</span>
+                        <span id="tiffOpacityValue2">100%</span>
                     </div>
                     <div class="layer-checkbox">
                         <input type="checkbox" id="tiffLayer3">
@@ -85,7 +137,7 @@
                     <div class="opacity-control">
                         <label for="tiffOpacity3">Opacity</label>
                         <input type="range" id="tiffOpacity3" min="0" max="1" step="0.1" value="1">
-						<span id="tiffOpacityValue3">100%</span>
+                        <span id="tiffOpacityValue3">100%</span>
                     </div>
                     <div class="layer-checkbox">
                         <input type="checkbox" id="tiffLayer4">
@@ -94,7 +146,7 @@
                     <div class="opacity-control">
                         <label for="tiffOpacity4">Opacity</label>
                         <input type="range" id="tiffOpacity4" min="0" max="1" step="0.1" value="1">
-						<span id="tiffOpacityValue4">100%</span>
+                        <span id="tiffOpacityValue4">100%</span>
                     </div>
                 </div>
             </div>
@@ -110,39 +162,43 @@
                     <div class="opacity-control">
                         <label for="pointOpacity">Opacity</label>
                         <input type="range" id="pointOpacity" min="0" max="1" step="0.1" value="1">
-						<span id="pointOpacityValue">100%</span>
+                        <span id="pointOpacityValue">100%</span>
                     </div>
-                    <div id="floating-control" style="display: block; margin-top: 10px; margin-left: 10px;">
-                    <label for="pointValueSelector">Select Value to Display:</label>
-                    <select id="pointValueSelector">
-                        <!-- Options will be populated dynamically -->
-                    </select>fnwefwwoeuwewwifwepifjwfiwefwefi
+                    <div class="attribute-selector">
+                        <label for="pointValueSelector">Value to Display:</label>
+                        <select id="pointValueSelector">
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
                 </div>
-                </div>
-                
-                
             </div>
         </div>
-        <div id="stats-container" style="display: none; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+        
+        <!-- Statistics container -->
+        <div id="stats-container" style="display: none; position: absolute; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
             <!-- Statistics will be dynamically populated here -->
         </div>
+        
+        <!-- Map container -->
         <div id="map"></div>
-
     </div>
 
-
-	<div id="legend" class="legend"></div>
-    <script type="module" src="js/geojsonlayers.js"></script>
-	<script type="module" src="js/basemaps.js"></script>
+    <!-- Legend -->
+    <div id="legend" class="legend"></div>
+    
+    <!-- Scripts - Updated paths to load from root directory -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.min.js"></script>
-    <!-- <script src="js/libs/proj4js-2.15.0/dist/proj4.js"></script> -->
-    <script src=https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.15.0/proj4.js></script>
-    <script type="module" src="js/test_tiff_loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.15.0/proj4.js"></script>
+    
+    <!-- JavaScript modules with corrected paths -->
+    <script type="module" src="js/color_scales.js"></script>
+    <script type="module" src="js/color_ramp_selector.js"></script>
+    <script type="module" src="js/tiff_loader.js"></script>
+    <script type="module" src="js/vector_layers.js"></script>
+    <script type="module" src="js/layer_controls.js"></script>
+    <script type="module" src="js/legend.js"></script>
+    <script type="module" src="js/basemaps.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
-
-
-
-

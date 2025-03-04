@@ -67,8 +67,14 @@ function addHoverTooltip(map, rasterArray, bounds, width, height, layerName, tif
     }
 }
 
-// Updated `loadTiff` function to include the hover logic
+// Updated `loadTiff` function to include error handling for colorScale
 export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
+    // Add validation for colorScale
+    if (!colorScale || !colorScale.ranges || !colorScale.colors) {
+        console.error(`Invalid colorScale for ${layerName}:`, colorScale);
+        throw new Error(`Invalid colorScale for layer "${layerName}". The colorScale must have ranges and colors properties.`);
+    }
+
     const response = await fetch(url);
     const arrayBuffer = await response.arrayBuffer();
     const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
@@ -122,39 +128,52 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
 }
 
 function getColorForValue(value, colorScale) {
-    const { ranges, colors } = colorScale;
+    // Handle case where colorScale is undefined or invalid
+    if (!colorScale || !colorScale.ranges || !colorScale.colors) {
+        console.error('Invalid colorScale in getColorForValue:', colorScale);
+        return [128, 128, 128]; // Return gray if color scale is invalid
+    }
 
+    const { ranges, colors } = colorScale;
+    
+    // Make sure ranges and colors exist and have length
+    if (!Array.isArray(ranges) || !Array.isArray(colors) || ranges.length < 2 || colors.length < 1) {
+        console.error('Invalid ranges or colors in colorScale:', { ranges, colors });
+        return [128, 128, 128]; // Return gray if invalid structure
+    }
+
+    // Find the appropriate color range for the value
     for (let i = 0; i < ranges.length - 1; i++) {
         if (value >= ranges[i] && value < ranges[i + 1]) {
             return hexToRgb(colors[i]);
         }
     }
+    
+    // Return the last color if the value is at or above the highest range
     return hexToRgb(colors[colors.length - 1]);
 }
 
+// Convert hex color to RGB array
 function hexToRgb(hex) {
-    const bigint = parseInt(hex.replace('#', ''), 16);
-    return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+    // Check if this is a valid hex color
+    if (!hex || typeof hex !== 'string' || !hex.match(/^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/)) {
+        console.warn('Invalid hex color:', hex);
+        return [128, 128, 128]; // Return gray as fallback
+    }
+
+    // Remove '#' if present
+    hex = hex.replace('#', '');
+    
+    // Convert 3-digit hex to 6-digit
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    
+    // Parse the hex values
+    const bigint = parseInt(hex, 16);
+    return [
+        (bigint >> 16) & 255, // Red
+        (bigint >> 8) & 255,  // Green
+        bigint & 255          // Blue
+    ];
 }
-
-// Function to calculate raster statistics
-// function calculateStatistics(rasterArray) {
-//     const validValues = rasterArray.filter(value => value !== -1); // Exclude nodata values
-//     const min = Math.min(...validValues);
-//     const max = Math.max(...validValues);
-//     const mean = validValues.reduce((sum, value) => sum + value, 0) / validValues.length;
-
-//     return { min, max, mean };
-// }
-
-// // Function to display statistics
-// function displayStatistics(layerName, stats) {
-//     const statsContainer = document.getElementById('stats-container');
-//     statsContainer.innerHTML = `
-//         <h4>Statistics for ${layerName}</h4>
-//         <p>Min: ${stats.min}</p>
-//         <p>Max: ${stats.max}</p>
-//         <p>Mean: ${stats.mean.toFixed(2)}</p>
-//     `;
-//     statsContainer.style.display = 'block'; // Ensure the stats are visible
-// }

@@ -74,6 +74,7 @@ body {
     flex: 1; /* Fills the remaining space */
     position: relative; /* Ensures the map respects the sidebar's width */
     z-index: 0;
+    height: 100%; /* Ensure the map takes full height */
 }
 
 .layer-group {
@@ -120,6 +121,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    padding: 5px 10px;
 }
 
 .opacity-control {
@@ -128,6 +130,7 @@ body {
     justify-content: flex-start;
     margin-top: 5px;
 	margin-left: 5px;
+    padding: 5px;
 }
 
 .opacity-control label {
@@ -194,7 +197,7 @@ body {
     line-height: 1.4;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     z-index: 1000;
-    display: none; /* Hide by default and show when needed */
+    display: block; /* Changed to block to make it visible */
 }
 
 .legend h4 {
@@ -276,4 +279,71 @@ body {
     border-radius: 3px;
     font-size: 12px;
     font-family: Arial, sans-serif;
+}
+
+/* Additional styles for attribute selectors and color ramp controls */
+.layer-controls {
+    padding: 5px 15px;
+    margin-bottom: 10px;
+}
+
+.attribute-selector,
+.color-ramp-selector {
+    margin-top: 10px;
+    width: 100%;
+}
+
+.attribute-selector label,
+.color-ramp-selector label {
+    display: block;
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.attribute-selector select,
+.color-ramp-selector select {
+    width: 100%;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    font-size: 14px;
+}
+
+.color-preview {
+    min-height: 20px;
+    border-radius: 3px;
+    margin-top: 5px;
+    border: 1px solid #ced4da;
+}
+
+.color-ramp-preview {
+    display: flex;
+    height: 20px;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid #ced4da;
+}
+
+/* Basemap control styles */
+.basemap-control {
+    background-color: white !important;
+    padding: 8px !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+}
+
+.basemap-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #495057;
+}
+
+.basemap-select {
+    width: 100%;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    font-size: 14px;
 }
