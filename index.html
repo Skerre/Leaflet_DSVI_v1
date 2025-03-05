@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Development Tool for DSVI Data Visualization</title>
     
-    <!-- Updated CSS path - place styles.css in the root directory -->
+    <!-- CSS styles -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     
     <meta name="description" content="Interactive map visualization tool for development and social vulnerability data">
     
-    <!-- Critical inline styles to ensure page rendering -->
+    <!-- Critical inline styles -->
     <style>
-        /* Only critical layout styles to ensure the page functions */
         html, body {
             height: 100%;
             margin: 0;
@@ -39,6 +38,7 @@
 
     <!-- Main container for sidebar and map -->
     <div class="main-container">
+        <!-- Sidebar with layer controls -->
         <div id="sidebar">
             <h3>Datasets</h3>
             
@@ -52,7 +52,6 @@
                         <label for="geojsonLayer">Admin Level 1 Statistics</label>
                     </div>
                     
-                    <!-- Admin Level 1 Controls -->
                     <div class="layer-controls">
                         <div class="opacity-control">
                             <label for="geojsonOpacity">Opacity</label>
@@ -62,16 +61,12 @@
                         
                         <div class="attribute-selector">
                             <label for="vectorAttribute1">Attribute to Display:</label>
-                            <select id="vectorAttribute1">
-                                <!-- Options will be populated dynamically -->
-                            </select>
+                            <select id="vectorAttribute1"></select>
                         </div>
                         
                         <div class="color-ramp-selector">
                             <label for="vectorColorRamp1">Color Scheme:</label>
-                            <select id="vectorColorRamp1">
-                                <!-- Options will be populated dynamically -->
-                            </select>
+                            <select id="vectorColorRamp1"></select>
                             <div id="vectorColorPreview1" class="color-preview"></div>
                         </div>
                     </div>
@@ -82,7 +77,6 @@
                         <label for="geojsonLayer2">Admin Level 2 Statistics</label>
                     </div>
                     
-                    <!-- Admin Level 2 Controls -->
                     <div class="layer-controls">
                         <div class="opacity-control">
                             <label for="geojsonOpacity2">Opacity</label>
@@ -92,16 +86,12 @@
                         
                         <div class="attribute-selector">
                             <label for="vectorAttribute2">Attribute to Display:</label>
-                            <select id="vectorAttribute2">
-                                <!-- Options will be populated dynamically -->
-                            </select>
+                            <select id="vectorAttribute2"></select>
                         </div>
                         
                         <div class="color-ramp-selector">
                             <label for="vectorColorRamp2">Color Scheme:</label>
-                            <select id="vectorColorRamp2">
-                                <!-- Options will be populated dynamically -->
-                            </select>
+                            <select id="vectorColorRamp2"></select>
                             <div id="vectorColorPreview2" class="color-preview"></div>
                         </div>
                     </div>
@@ -112,6 +102,20 @@
             <div class="layer-group">
                 <button class="dropdown-btn">Raster Layers</button>
                 <div class="dropdown-container">
+                    <!-- Raster layer controls -->
+                    <template id="raster-layer-template">
+                        <div class="layer-checkbox">
+                            <input type="checkbox" id="layerId">
+                            <label for="layerId">Layer Name</label>
+                        </div>
+                        <div class="opacity-control">
+                            <label for="opacityId">Opacity</label>
+                            <input type="range" id="opacityId" min="0" max="1" step="0.1" value="1">
+                            <span id="opacityValueId">100%</span>
+                        </div>
+                    </template>
+                    
+                    <!-- Cell Tower Density -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="tiffLayer1">
                         <label for="tiffLayer1">Cell Tower Density</label>
@@ -121,6 +125,8 @@
                         <input type="range" id="tiffOpacity1" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue1">100%</span>
                     </div>
+                    
+                    <!-- Population Density -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="tiffLayer2">
                         <label for="tiffLayer2">Population Density</label>
@@ -130,6 +136,8 @@
                         <input type="range" id="tiffOpacity2" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue2">100%</span>
                     </div>
+                    
+                    <!-- Social Vulnerability -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="tiffLayer3">
                         <label for="tiffLayer3">Social Vulnerability</label>
@@ -139,6 +147,8 @@
                         <input type="range" id="tiffOpacity3" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue3">100%</span>
                     </div>
+                    
+                    <!-- Relative Wealth -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="tiffLayer4">
                         <label for="tiffLayer4">Relative Wealth</label>
@@ -166,18 +176,14 @@
                     </div>
                     <div class="attribute-selector">
                         <label for="pointValueSelector">Value to Display:</label>
-                        <select id="pointValueSelector">
-                            <!-- Options will be populated dynamically -->
-                        </select>
+                        <select id="pointValueSelector"></select>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- Statistics container -->
-        <div id="stats-container" style="display: none; position: absolute; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
-            <!-- Statistics will be dynamically populated here -->
-        </div>
+        <div id="stats-container" style="display: none; position: absolute; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);"></div>
         
         <!-- Map container -->
         <div id="map"></div>
@@ -186,12 +192,12 @@
     <!-- Legend -->
     <div id="legend" class="legend"></div>
     
-    <!-- Scripts - Updated paths to load from root directory -->
+    <!-- External library scripts -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.15.0/proj4.js"></script>
     
-    <!-- JavaScript modules with corrected paths -->
+    <!-- Application scripts -->
     <script type="module" src="js/color_scales.js"></script>
     <script type="module" src="js/color_ramp_selector.js"></script>
     <script type="module" src="js/tiff_loader.js"></script>
@@ -200,37 +206,56 @@
     <script type="module" src="js/legend.js"></script>
     <script type="module" src="js/basemaps.js"></script>
     <script type="module" src="js/main.js"></script>
+    
+    <!-- UI initialization script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-          // Hide all selectors initially
-          document.querySelectorAll('.attribute-selector, .color-ramp-selector').forEach(function(elem) {
-            elem.style.display = 'none';
-          });
-          
-          // Handle Admin Level 1
-          var checkbox1 = document.getElementById('geojsonLayer');
-          var controls1 = document.querySelectorAll('.layer-controls')[0];
-          if (checkbox1 && controls1) {
-            checkbox1.addEventListener('change', function() {
-              var attributeSelector = controls1.querySelector('.attribute-selector');
-              var colorSelector = controls1.querySelector('.color-ramp-selector');
-              if (attributeSelector) attributeSelector.style.display = this.checked ? 'block' : 'none';
-              if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
+            // Hide all selectors initially
+            document.querySelectorAll('.attribute-selector, .color-ramp-selector').forEach(function(elem) {
+                elem.style.display = 'none';
             });
-          }
-          
-          // Handle Admin Level 2
-          var checkbox2 = document.getElementById('geojsonLayer2');
-          var controls2 = document.querySelectorAll('.layer-controls')[1];
-          if (checkbox2 && controls2) {
-            checkbox2.addEventListener('change', function() {
-              var attributeSelector = controls2.querySelector('.attribute-selector');
-              var colorSelector = controls2.querySelector('.color-ramp-selector');
-              if (attributeSelector) attributeSelector.style.display = this.checked ? 'block' : 'none';
-              if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
-            });
-          }
+            
+            // Handle Admin Level 1
+            setupLayerControls('geojsonLayer');
+            
+            // Handle Admin Level 2
+            setupLayerControls('geojsonLayer2');
+            
+            // Handle Point Layer
+            setupPointControls();
+            
+            // Helper function to set up layer control visibility
+            function setupLayerControls(layerId) {
+                const checkbox = document.getElementById(layerId);
+                const controlsContainer = checkbox.closest('.layer-checkbox').nextElementSibling;
+                
+                if (checkbox && controlsContainer) {
+                    checkbox.addEventListener('change', function() {
+                        const attributeSelector = controlsContainer.querySelector('.attribute-selector');
+                        const colorSelector = controlsContainer.querySelector('.color-ramp-selector');
+                        
+                        if (attributeSelector) attributeSelector.style.display = this.checked ? 'block' : 'none';
+                        if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+            }
+            
+            // Set up point layer controls
+            function setupPointControls() {
+                const pointCheckbox = document.getElementById('pointLayer');
+                const pointSelector = document.getElementById('pointValueSelector');
+                
+                if (pointCheckbox && pointSelector) {
+                    // Initially hide the selector
+                    pointSelector.parentElement.style.display = 'none';
+                    
+                    pointCheckbox.addEventListener('change', function() {
+                        // Show/hide the selector based on checkbox state
+                        pointSelector.parentElement.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+            }
         });
-      </script>
+    </script>
 </body>
 </html>

@@ -1,19 +1,13 @@
 // main.js - Core application logic
 
-// Import modules
-import { loadTiff } from './tiff_loader.js';
+// Import only the modules we actually use
 import { BasemapControl, addDefaultBasemap } from './basemaps.js';
-import { loadVectorLayer, loadPointLayer } from './vector_layers.js';
 import { setupLayerControls } from './layer_controls.js';
 import { initializeLegend, updateLegend, hideLegend } from './legend.js';
-import { colorScales, colorRamps } from './color_scales.js';
+import { colorScales } from './color_scales.js';
 
 // Initialize the map centered on Mali
 const map = L.map('map').setView([17.5707, -3.9962], 6);
-
-// Add the default basemap and initialize controls
-addDefaultBasemap(map);
-map.addControl(new BasemapControl());
 
 // Global layer storage
 export const layers = {
@@ -22,40 +16,56 @@ export const layers = {
     point: null // Store point layer
 };
 
-// Initialize UI
-initializeLegend();
-setupDropdownToggles();
+// Initialize application
+document.addEventListener('DOMContentLoaded', function() {
+    // Add basemap and controls
+    addDefaultBasemap(map);
+    map.addControl(new BasemapControl());
+    
+    // Initialize UI components
+    initializeLegend();
+    setupDropdownToggles();
+    
+    // Setup layer controls with access to map, layers, and legend functions
+    setupLayerControls(map, layers, colorScales, updateLegend, hideLegend);
+    
+    // Initialize opacity values display
+    setupOpacityDisplays();
+});
 
-// Setup layer controls and event listeners
-setupLayerControls(map, layers, colorScales, updateLegend, hideLegend);
-
-// Dropdown menu toggle functionality
+/**
+ * Dropdown menu toggle functionality
+ */
 function setupDropdownToggles() {
     const dropdownButtons = document.querySelectorAll('.dropdown-btn');
     
     dropdownButtons.forEach(button => {
-        // Add click event listener
         button.addEventListener('click', function() {
+            // Toggle active class
             this.classList.toggle('active');
-            const dropdownContent = this.nextElementSibling;
-            if (dropdownContent && dropdownContent.classList.contains('dropdown-container')) {
-                if (dropdownContent.style.display === 'block') {
-                    dropdownContent.style.display = 'none';
-                } else {
-                    dropdownContent.style.display = 'block';
-                }
+            
+            // Toggle dropdown container visibility
+            const container = this.nextElementSibling;
+            if (container && container.classList.contains('dropdown-container')) {
+                container.style.display = container.style.display === 'block' ? 'none' : 'block';
             }
         });
     });
 }
 
-// Initialize opacity values display
-const opacitySliders = document.querySelectorAll('input[type="range"]');
-opacitySliders.forEach(slider => {
-    const displayId = slider.id.replace('Opacity', 'OpacityValue');
-    const display = document.getElementById(displayId);
-    if (display) {
-        const value = Math.round(slider.value * 100);
-        display.textContent = `${value}%`;
-    }
-});
+/**
+ * Initialize the opacity value displays
+ */
+function setupOpacityDisplays() {
+    const opacitySliders = document.querySelectorAll('input[type="range"]');
+    
+    opacitySliders.forEach(slider => {
+        const displayId = slider.id.replace('Opacity', 'OpacityValue');
+        const display = document.getElementById(displayId);
+        
+        if (display) {
+            const value = Math.round(slider.value * 100);
+            display.textContent = `${value}%`;
+        }
+    });
+}

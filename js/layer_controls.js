@@ -89,8 +89,6 @@ const layerConfig = {
 };
 
 /**
- * This is the main function that needs to be modified to pass the updateLegend function
- * 
  * Setup all layer controls and their event listeners
  * @param {Object} map - Leaflet map instance
  * @param {Object} layers - Object to store all layers
@@ -99,70 +97,65 @@ const layerConfig = {
  * @param {Function} hideLegend - Function to hide the legend
  */
 export function setupLayerControls(map, layers, colorScales, updateLegend, hideLegend) {
-    // Setup layer toggles
+    // Initialize layer handlers
     Object.keys(layerConfig).forEach(layerId => {
         setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideLegend);
         
-        // Setup opacity controls if they exist
         const config = layerConfig[layerId];
+        
+        // Setup opacity control if configured
         if (config.opacityControl && config.opacityDisplay) {
             setupOpacityControl(config.opacityControl, config.opacityDisplay, layerId, layers, updateLegend);
         }
         
-        // Setup attribute and color ramp selectors for vector layers
+        // Setup vector layer attribute and color controls
         if (config.type === 'vector' && config.attributeSelector && config.colorRampSelector) {
-            setupVectorAttributeControls(layerId, map, layers, config, updateLegend);
+            setupVectorControls(layerId, map, layers, config, updateLegend);
         }
     });
     
-    // Setup property selector for point layer if it exists
-    const pointSelector = document.getElementById('pointValueSelector');
-    if (pointSelector) {
-        pointSelector.addEventListener('change', function() {
-            if (layers.point) {
-                layers.point.eachLayer(layer => {
-                    if (layer.feature) {
-                        updateTooltip(layer.feature, layer, 'pointValueSelector');
-                    }
-                });
-            }
-        });
-    }
+    // Setup point layer property selector
+    setupPointLayerSelector(layers);
 }
 
+/**
+ * Setup point layer property selector
+ */
+function setupPointLayerSelector(layers) {
+    const pointSelector = document.getElementById('pointValueSelector');
+    if (!pointSelector) return;
+    
+    pointSelector.addEventListener('change', function() {
+        if (!layers.point) return;
+        
+        layers.point.eachLayer(layer => {
+            if (layer.feature) {
+                updateTooltip(layer.feature, layer, 'pointValueSelector');
+            }
+        });
+    });
+}
 
 /**
- * This function needs to be modified to pass along the updateLegend function
- * 
  * Setup vector layer attribute controls
- * @param {string} layerId - ID of the layer
- * @param {Object} map - Leaflet map instance
- * @param {Object} layers - Object containing all layers
- * @param {Object} config - Layer configuration
- * @param {Function} updateLegend - Function to update the legend
  */
-function setupVectorAttributeControls(layerId, map, layers, config, updateLegend) {
+function setupVectorControls(layerId, map, layers, config, updateLegend) {
     // Setup color ramp selector
-    setupColorRampSelector(config.colorRampSelector, config.colorRampPreview, (ramp) => {
+    setupColorRampSelector(config.colorRampSelector, config.colorRampPreview, () => {
         updateVectorLayerFromControls(layerId, layers, updateLegend);
     });
     
     // Setup attribute selector change event
     const attributeSelector = document.getElementById(config.attributeSelector);
     if (attributeSelector) {
-        attributeSelector.addEventListener('change', function() {
+        attributeSelector.addEventListener('change', () => {
             updateVectorLayerFromControls(layerId, layers, updateLegend);
         });
     }
 }
 
 /**
- * This function needs to be modified to accept and pass along the updateLegend function
- * 
  * Update vector layer based on selected attribute and color ramp
- * @param {string} layerId - ID of the layer
- * @param {Object} layers - Object containing all layers
- * @param {Function} updateLegend - Function to update the legend
  */
 function updateVectorLayerFromControls(layerId, layers, updateLegend) {
     const config = layerConfig[layerId];
@@ -170,34 +163,31 @@ function updateVectorLayerFromControls(layerId, layers, updateLegend) {
     
     // Get selected attribute
     const attributeSelector = document.getElementById(config.attributeSelector);
-    if (!attributeSelector) return;
-    const selectedAttribute = attributeSelector.value;
-    if (!selectedAttribute) return;
+    if (!attributeSelector || !attributeSelector.value) return;
     
     // Get selected color ramp
     const colorRampSelector = document.getElementById(config.colorRampSelector);
-    if (!colorRampSelector) return;
-    const selectedRampId = colorRampSelector.value;
-    if (!selectedRampId) return;
+    if (!colorRampSelector || !colorRampSelector.value) return;
     
-    const colorRamp = getColorRamp(selectedRampId);
+    const colorRamp = getColorRamp(colorRampSelector.value);
     if (!colorRamp) return;
     
     // Get opacity value
     const opacitySlider = document.getElementById(config.opacityControl);
     const opacity = opacitySlider ? parseFloat(opacitySlider.value) : 0.5;
     
-    // Update the layer style and pass the updateLegend function
-    updateVectorLayerStyle(layers.vector[layerId], selectedAttribute, colorRamp, opacity, updateLegend);
+    // Update the layer style
+    updateVectorLayerStyle(
+        layers.vector[layerId], 
+        attributeSelector.value, 
+        colorRamp, 
+        opacity, 
+        updateLegend
+    );
 }
+
 /**
  * Setup layer toggle functionality for a specific layer
- * @param {string} layerId - ID of the layer checkbox
- * @param {Object} map - Leaflet map instance
- * @param {Object} layers - Object to store all layers
- * @param {Object} colorScales - Color scales for raster layers
- * @param {Function} updateLegend - Function to update the legend
- * @param {Function} hideLegend - Function to hide the legend
  */
 function setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideLegend) {
     const checkbox = document.getElementById(layerId);
@@ -211,8 +201,8 @@ function setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideL
             try {
                 await loadLayer(layerId, map, layers, colorScales, updateLegend);
                 
-                // If it's a vector layer, populate attribute selector
-                if (config.type === 'vector' && config.attributeSelector) {
+                // If vector layer, populate attribute selector
+                if (config.type === 'vector' && config.attributeSelector && layers.vector[layerId]) {
                     populateAttributeSelector(layers.vector[layerId], config.attributeSelector);
                 }
             } catch (error) {
@@ -227,19 +217,6 @@ function setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideL
 
 /**
  * Load a layer by ID
- * @param {string} layerId - ID of the layer
- * @param {Object} map - Leaflet map instance
- * @param {Object} layers - Object to store all layers
- * @param {Object} colorScales - Color scales for raster layers
- * @param {Function} updateLegend - Function to update the legend
- */
-/**
- * Load a layer by ID
- * @param {string} layerId - ID of the layer
- * @param {Object} map - Leaflet map instance
- * @param {Object} layers - Object to store all layers
- * @param {Object} colorScales - Color scales for raster layers
- * @param {Function} updateLegend - Function to update the legend
  */
 async function loadLayer(layerId, map, layers, colorScales, updateLegend) {
     const config = layerConfig[layerId];
@@ -247,67 +224,44 @@ async function loadLayer(layerId, map, layers, colorScales, updateLegend) {
     switch (config.type) {
         case 'vector':
             if (!layers.vector[layerId]) {
-                layers.vector[layerId] = await loadVectorLayer(config.url, {
-                    style: config.style
-                });
+                layers.vector[layerId] = await loadVectorLayer(config.url, { style: config.style });
             }
             layers.vector[layerId].addTo(map);
             break;
             
         case 'point':
             if (!layers.point) {
-                layers.point = await loadPointLayer(config.url, {
-                    selectorId: config.selectorId
-                });
+                layers.point = await loadPointLayer(config.url, { selectorId: config.selectorId });
             }
             layers.point.addTo(map);
             break;
             
         case 'raster':
-            try {
-                // Check if the specified colorScale exists
-                if (!colorScales || !colorScales[config.colorScale]) {
-                    console.error(`Color scale '${config.colorScale}' not found. Available scales:`, 
-                        colorScales ? Object.keys(colorScales) : 'None');
-                    throw new Error(`Color scale '${config.colorScale}' not found for layer ${layerId}`);
-                }
-                
-                const selectedColorScale = colorScales[config.colorScale];
-                console.log(`Loading raster layer ${layerId} with colorScale:`, selectedColorScale);
-                
-                if (!layers.tiff[layerId]) {
-                    await loadTiff(
-                        config.url, 
-                        layerId, 
-                        layers.tiff, 
-                        map, 
-                        selectedColorScale
-                    );
-                } else {
-                    layers.tiff[layerId].addTo(map);
-                }
-                
-                // Update legend for raster layers
-                updateLegend(
-                    config.legendTitle,
-                    selectedColorScale.colors,
-                    config.legendDescription,
-                    config.legendLabels
-                );
-            } catch (error) {
-                console.error(`Error loading raster layer ${layerId}:`, error);
-                throw error;
+            // Verify color scale exists
+            const selectedColorScale = colorScales[config.colorScale];
+            if (!selectedColorScale) {
+                throw new Error(`Color scale '${config.colorScale}' not found for layer ${layerId}`);
             }
+            
+            if (!layers.tiff[layerId]) {
+                await loadTiff(config.url, layerId, layers.tiff, map, selectedColorScale);
+            } else {
+                layers.tiff[layerId].addTo(map);
+            }
+            
+            // Update legend for raster layers
+            updateLegend(
+                config.legendTitle,
+                selectedColorScale.colors,
+                config.legendDescription,
+                config.legendLabels
+            );
             break;
     }
 }
 
 /**
  * Remove a layer by ID
- * @param {string} layerId - ID of the layer
- * @param {Object} map - Leaflet map instance
- * @param {Object} layers - Object containing all layers
- * @param {Function} hideLegend - Function to hide the legend
  */
 function removeLayer(layerId, map, layers, hideLegend) {
     const config = layerConfig[layerId];
@@ -330,7 +284,9 @@ function removeLayer(layerId, map, layers, hideLegend) {
                 map.removeLayer(layers.tiff[layerId]);
                 // Hide stats container
                 const statsContainer = document.getElementById('stats-container');
-                if (statsContainer) statsContainer.style.display = 'none';
+                if (statsContainer) {
+                    statsContainer.style.display = 'none';
+                }
                 hideLegend();
             }
             break;
@@ -338,14 +294,7 @@ function removeLayer(layerId, map, layers, hideLegend) {
 }
 
 /**
- * This function needs to be modified to pass along the updateLegend function
- * 
  * Setup opacity control for a layer
- * @param {string} sliderId - ID of the range input
- * @param {string} displayId - ID of the display element
- * @param {string} layerId - ID of the associated layer
- * @param {Object} layers - Object containing all layers
- * @param {Function} updateLegend - Function to update the legend
  */
 function setupOpacityControl(sliderId, displayId, layerId, layers, updateLegend) {
     const slider = document.getElementById(sliderId);
@@ -361,43 +310,50 @@ function setupOpacityControl(sliderId, displayId, layerId, layers, updateLegend)
         const config = layerConfig[layerId];
         if (!config) return;
         
-        switch (config.type) {
-            case 'raster':
-                if (layers.tiff[layerId]) {
-                    layers.tiff[layerId].setOpacity(this.value);
-                }
-                break;
-                
-            case 'vector':
-                if (layers.vector[layerId]) {
-                    // Always apply basic opacity
-                    layers.vector[layerId].setStyle({ 
-                        fillOpacity: this.value, 
-                        opacity: this.value 
-                    });
-                    
-                    // Additionally update color-based styling if selectors are configured
-                    if (config.attributeSelector && config.colorRampSelector) {
-                        const attributeSelector = document.getElementById(config.attributeSelector);
-                        const colorRampSelector = document.getElementById(config.colorRampSelector);
-                        
-                        // Only try to update advanced styling if both selectors have values
-                        if (attributeSelector && attributeSelector.value && 
-                            colorRampSelector && colorRampSelector.value) {
-                            updateVectorLayerFromControls(layerId, layers, updateLegend);
-                        }
-                    }
-                }
-                break;
-                
-            case 'point':
-                if (layers.point) {
-                    layers.point.setStyle({ 
-                        fillOpacity: this.value, 
-                        opacity: this.value 
-                    });
-                }
-                break;
-        }
+        updateLayerOpacity(config.type, layerId, layers, this.value, updateLegend);
     });
+}
+
+/**
+ * Update a layer's opacity based on type
+ */
+function updateLayerOpacity(layerType, layerId, layers, opacity, updateLegend) {
+    switch (layerType) {
+        case 'raster':
+            if (layers.tiff[layerId]) {
+                layers.tiff[layerId].setOpacity(opacity);
+            }
+            break;
+            
+        case 'vector':
+            if (!layers.vector[layerId]) return;
+            
+            // Apply basic opacity
+            layers.vector[layerId].setStyle({ 
+                fillOpacity: opacity, 
+                opacity: opacity 
+            });
+            
+            // Update color-based styling if configured
+            const config = layerConfig[layerId];
+            if (config.attributeSelector && config.colorRampSelector) {
+                const attributeSelector = document.getElementById(config.attributeSelector);
+                const colorRampSelector = document.getElementById(config.colorRampSelector);
+                
+                if (attributeSelector && attributeSelector.value && 
+                    colorRampSelector && colorRampSelector.value) {
+                    updateVectorLayerFromControls(layerId, layers, updateLegend);
+                }
+            }
+            break;
+            
+        case 'point':
+            if (layers.point) {
+                layers.point.setStyle({ 
+                    fillOpacity: opacity, 
+                    opacity: opacity 
+                });
+            }
+            break;
+    }
 }

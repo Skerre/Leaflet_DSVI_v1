@@ -17,7 +17,7 @@ export function loadVectorLayer(url, options = {}) {
     return fetch(url)
         .then(response => response.json())
         .then(data => {
-            // Store the raw data for later reference (for when attributes change)
+            // Store data and create the layer
             const layerData = { 
                 raw: data,
                 propertyFields: getPropertyFields(data),
@@ -25,23 +25,25 @@ export function loadVectorLayer(url, options = {}) {
                 colorRamp: options.colorRamp || null
             };
             
-            // Create the vector layer
             const vectorLayer = L.geoJSON(data, {
                 style: feature => {
-                    // If a property is selected and a color ramp is defined, apply it
+                    // Apply styling based on property and color ramp if provided
                     if (options.selectedProperty && options.colorRamp && feature.properties) {
-                        const value = feature.properties[options.selectedProperty];
-                        return Object.assign({}, 
-                            typeof options.style === 'function' ? options.style(feature) : (options.style || defaultStyle),
-                            { fillColor: getColorFromRamp(value, data, options.selectedProperty, options.colorRamp) }
-                        );
-                    } else {
-                        return typeof options.style === 'function' ? options.style(feature) : (options.style || defaultStyle);
-                    }
+                        return {
+                            ...getStyleOptions(options, defaultStyle, feature),
+                            fillColor: getColorFromRamp(
+                                feature.properties[options.selectedProperty], 
+                                data, 
+                                options.selectedProperty, 
+                                options.colorRamp
+                            )
+                        };
+                    } 
+                    return getStyleOptions(options, defaultStyle, feature);
                 },
                 onEachFeature: (feature, layer) => {
+                    // Set default tooltip
                     if (feature.properties) {
-                        // Initialize with a default tooltip
                         layer.bindTooltip("Select an attribute to view values", {
                             permanent: false,
                             direction: 'top'
@@ -52,71 +54,102 @@ export function loadVectorLayer(url, options = {}) {
             
             // Attach data to the layer for later use
             vectorLayer.layerData = layerData;
-            
             return vectorLayer;
         });
 }
 
 /**
- * Update the tooltip content for a vector layer feature based on selected property
- * 
- * @param {Object} feature - GeoJSON feature
- * @param {Object} layer - Leaflet layer
- * @param {string} selectedProperty - Selected property name
+ * Get style options, handling function or object style definitions
  */
-function updateVectorTooltip(feature, layer, selectedProperty) {
-    if (!feature.properties) {
-        layer.unbindTooltip();
-        layer.bindTooltip("No properties available", {
-            permanent: false,
-            direction: 'top'
-        });
+function getStyleOptions(options, defaultStyle, feature) {
+    return typeof options.style === 'function' 
+        ? options.style(feature) 
+        : (options.style || defaultStyle);
+}
+
+/**
+ * Update a vector layer's style based on selected property and color ramp
+ * @param {Object} layer - Leaflet GeoJSON layer
+ * @param {string} property - Property name to use for coloring
+ * @param {Object} colorRamp - Color ramp object
+ * @param {number} opacity - Layer opacity
+ * @param {Function} updateLegend - Function to update the legend (optional)
+ */
+export function updateVectorLayerStyle(layer, property, colorRamp, opacity = 1, updateLegend = null) {
+    if (!layer?.layerData || !property || !colorRamp?.colors) {
+        console.error('Missing required parameters for updateVectorLayerStyle');
         return;
     }
     
-    if (!selectedProperty) {
-        // If no property is selected, show a default tooltip
-        layer.unbindTooltip();
-        layer.bindTooltip("Select an attribute to view values", {
-            permanent: false,
-            direction: 'top'
-        });
-        return;
+    // Update the stored layer data
+    layer.layerData.selectedProperty = property;
+    layer.layerData.colorRamp = colorRamp;
+    
+    try {
+        // Update styles and tooltips
+        applyLayerStyle(layer, property, colorRamp, opacity);
+        updateLayerTooltips(layer, property);
+        
+        // Update legend if a function was provided
+        if (typeof updateLegend === 'function') {
+            updateVectorLegend(layer, property, colorRamp, updateLegend);
+        }
+    } catch (err) {
+        console.error('Error updating vector layer style:', err);
     }
-    
-    const value = feature.properties[selectedProperty];
-    if (value === undefined) {
-        layer.unbindTooltip();
-        layer.bindTooltip(`No data for ${selectedProperty}`, {
-            permanent: false,
-            direction: 'top'
-        });
-        return;
-    }
-    
-    // Format the tooltip to show only the selected property
-    const formattedValue = typeof value === 'number' ? value.toLocaleString(undefined, {
-        maximumFractionDigits: 2
-    }) : value;
-    
-    // Unbind any existing tooltip and bind a new one
-    layer.unbindTooltip();
-    layer.bindTooltip(`${selectedProperty}: ${formattedValue}`, {
-        permanent: false,
-        direction: 'top'
+}
+
+/**
+ * Apply style updates to a layer
+ */
+function applyLayerStyle(layer, property, colorRamp, opacity) {
+    layer.setStyle(feature => {
+        if (!feature?.properties) {
+            return { fillOpacity: opacity, opacity: opacity };
+        }
+        
+        return {
+            fillColor: getColorFromRamp(
+                feature.properties[property], 
+                layer.layerData.raw, 
+                property, 
+                colorRamp
+            ),
+            fillOpacity: opacity,
+            opacity: opacity,
+            weight: 2,
+            color: '#333'
+        };
     });
 }
 
 /**
- * Get property fields from the first feature in a GeoJSON object
- * @param {Object} geojsonData - GeoJSON data
- * @returns {Array} - Array of property field names
+ * Update tooltips for each feature in a layer
  */
-function getPropertyFields(geojsonData) {
-    if (geojsonData && geojsonData.features && geojsonData.features.length > 0 && geojsonData.features[0].properties) {
-        return Object.keys(geojsonData.features[0].properties);
-    }
-    return [];
+function updateLayerTooltips(layer, property) {
+    layer.eachLayer(featureLayer => {
+        if (!featureLayer.feature?.properties) return;
+        
+        const value = featureLayer.feature.properties[property];
+        const tooltipContent = value === undefined
+            ? `No data for ${property}`
+            : `${property}: ${formatValue(value)}`;
+            
+        featureLayer.unbindTooltip();
+        featureLayer.bindTooltip(tooltipContent, {
+            permanent: false,
+            direction: 'top'
+        });
+    });
+}
+
+/**
+ * Format a value for display in tooltips
+ */
+function formatValue(value) {
+    return typeof value === 'number' 
+        ? value.toLocaleString(undefined, { maximumFractionDigits: 2 }) 
+        : value;
 }
 
 /**
@@ -128,242 +161,122 @@ function getPropertyFields(geojsonData) {
  * @returns {string} - Color hex code
  */
 function getColorFromRamp(value, data, property, colorRamp) {
-    // Ensure colorRamp and colors array exist
-    if (!colorRamp || !colorRamp.colors || !Array.isArray(colorRamp.colors) || colorRamp.colors.length === 0) {
-        console.error('Invalid color ramp:', colorRamp);
-        return '#CCCCCC'; // Default gray color if color ramp is invalid
+    // Validation
+    if (!colorRamp?.colors?.length) {
+        return '#CCCCCC'; // Default gray if invalid
     }
     
-    // Convert value to number if possible
+    // Handle non-numeric values
     const numValue = Number(value);
     if (isNaN(numValue)) {
-        // For non-numeric values, use a random color from the ramp
-        return colorRamp.colors[Math.floor(Math.random() * colorRamp.colors.length)];
+        return colorRamp.colors[0];
     }
     
-    // Collect all numeric values for this property
+    // Get all property values for classification
     const values = data.features
         .map(feature => feature.properties[property])
         .filter(val => val !== undefined && val !== null)
         .map(val => Number(val))
-        .filter(val => !isNaN(val));
+        .filter(val => !isNaN(val))
+        .sort((a, b) => a - b);
     
-    if (values.length === 0) {
-        console.error('No valid numeric values found for property:', property);
-        return colorRamp.colors[0];
-    }
+    if (values.length === 0) return colorRamp.colors[0];
     
-    // Sort values for quantile calculation
-    values.sort((a, b) => a - b);
+    // Calculate quantile breaks
+    const numClasses = colorRamp.colors.length;
+    const breaks = calculateQuantileBreaks(values, numClasses);
     
-    // Default to 5 classes if not specified
-    const numClasses = colorRamp.colors.length || 5;
-    
-    // Calculate quantile breaks (Equal Count/Quantile method)
-    const breaks = [];
-    for (let i = 0; i < numClasses; i++) {
-        const index = Math.floor((i / numClasses) * values.length);
-        breaks.push(values[index]);
-    }
-    // Add the maximum value as the final break
-    if (breaks[breaks.length - 1] !== values[values.length - 1]) {
-        breaks.push(values[values.length - 1]);
-    }
-    
-    // Find which class the value falls into
+    // Find the appropriate class
     for (let i = 0; i < breaks.length - 1; i++) {
         if (numValue >= breaks[i] && numValue <= breaks[i+1]) {
             return colorRamp.colors[Math.min(i, colorRamp.colors.length - 1)];
         }
     }
     
-    // Default to the last color if somehow we didn't find a match
     return colorRamp.colors[colorRamp.colors.length - 1];
 }
 
 /**
+ * Calculate quantile breaks for classification
+ */
+function calculateQuantileBreaks(values, numClasses) {
+    const breaks = [];
+    for (let i = 0; i < numClasses; i++) {
+        const index = Math.floor((i / numClasses) * values.length);
+        breaks.push(values[index]);
+    }
+    
+    // Ensure the last break includes the maximum value
+    if (breaks[breaks.length - 1] !== values[values.length - 1]) {
+        breaks.push(values[values.length - 1]);
+    }
+    
+    return breaks;
+}
+
+/**
  * Update the legend for a vector layer based on attribute and color ramp
- * @param {Object} layer - Leaflet GeoJSON layer
- * @param {string} property - Property name being displayed
- * @param {Object} colorRamp - Color ramp object
- * @param {Function} updateLegend - Function to update the legend UI
  */
 function updateVectorLegend(layer, property, colorRamp, updateLegend) {
-    // Collect all values for the property
     const values = layer.layerData.raw.features
         .map(feature => feature.properties[property])
         .filter(val => val !== undefined && val !== null)
         .map(val => typeof val === 'number' ? val : Number(val))
-        .filter(val => !isNaN(val));
+        .filter(val => !isNaN(val))
+        .sort((a, b) => a - b);
     
     if (values.length === 0) return;
     
-    // Sort values for quantile calculation
-    values.sort((a, b) => a - b);
-    
-    // Calculate quantile breaks (Equal Count/Quantile method)
+    // Calculate breaks and format labels
     const numClasses = colorRamp.colors.length;
-    const breaks = [];
-    for (let i = 0; i <= numClasses; i++) {
-        const index = Math.min(Math.floor((i / numClasses) * values.length), values.length - 1);
-        breaks.push(values[index]);
-    }
+    const breaks = calculateQuantileBreaks(values, numClasses);
+    const labels = formatLegendLabels(breaks);
     
-    // Format breaks as readable labels
-    const labels = [];
-    for (let i = 0; i < breaks.length - 1; i++) {
-        const start = formatValue(breaks[i]);
-        const end = formatValue(breaks[i + 1]);
-        labels.push(`${start} - ${end}`);
-    }
-    
-    // Call the updateLegend function with the property name, colors, and labels
+    // Update legend
     updateLegend(
-        `${property}`,
+        property,
         colorRamp.colors,
         `Distribution by quantiles (${numClasses} classes)`,
         labels.slice(0, numClasses)
     );
 }
 
-
 /**
- * Format a numeric value for display in the legend
- * @param {number} value - Numeric value to format
- * @returns {string} - Formatted value string
+ * Format legend labels from break values
  */
-function formatValue(value) {
-    if (Math.abs(value) >= 1000) {
-        return value.toLocaleString(undefined, {
-            maximumFractionDigits: 0
-        });
-    } else if (Math.abs(value) >= 1) {
-        return value.toLocaleString(undefined, {
-            maximumFractionDigits: 1
-        });
-    } else {
-        return value.toLocaleString(undefined, {
-            maximumFractionDigits: 2
-        });
+function formatLegendLabels(breaks) {
+    const labels = [];
+    for (let i = 0; i < breaks.length - 1; i++) {
+        labels.push(`${formatValue(breaks[i])} - ${formatValue(breaks[i + 1])}`);
     }
-}
-/**
- * Update a vector layer's style based on selected property and color ramp
- * @param {Object} layer - Leaflet GeoJSON layer
- * @param {string} property - Property name to use for coloring
- * @param {Object} colorRamp - Color ramp object
- * @param {number} opacity - Layer opacity
- * @param {Function} updateLegend - Function to update the legend (optional)
- */
-export function updateVectorLayerStyle(layer, property, colorRamp, opacity = 1, updateLegend = null) {
-    if (!layer || !layer.layerData || !property) {
-        console.error('Missing required parameters for updateVectorLayerStyle:', 
-            { hasLayer: !!layer, hasLayerData: !!(layer && layer.layerData), property });
-        return;
-    }
-    
-    if (!colorRamp || !colorRamp.colors) {
-        console.error('Invalid color ramp:', colorRamp);
-        return;
-    }
-    
-    console.log('Updating vector layer style with:', 
-        { property, colorRamp: colorRamp.colors.length + ' colors', opacity });
-    
-    // Update the stored layer data
-    layer.layerData.selectedProperty = property;
-    layer.layerData.colorRamp = colorRamp;
-    
-    // Ensure opacity is a valid number
-    const validOpacity = opacity !== undefined && !isNaN(opacity) ? opacity : 1;
-    
-    try {
-        // Update the style for each feature
-        layer.setStyle(feature => {
-            if (!feature || !feature.properties) {
-                return { fillOpacity: validOpacity, opacity: validOpacity };
-            }
-            
-            const value = feature.properties[property];
-            
-            return {
-                fillColor: getColorFromRamp(value, layer.layerData.raw, property, colorRamp),
-                fillOpacity: validOpacity,
-                opacity: validOpacity,
-                // Maintain other style properties
-                weight: 2,
-                color: '#333'
-            };
-        });
-        
-        // Update tooltips for each feature layer
-        layer.eachLayer(featureLayer => {
-            if (featureLayer.feature) {
-                // Update tooltip content for this feature
-                const feature = featureLayer.feature;
-                if (!feature.properties) return;
-                
-                const value = feature.properties[property];
-                if (value === undefined) {
-                    featureLayer.unbindTooltip();
-                    featureLayer.bindTooltip(`No data for ${property}`, {
-                        permanent: false,
-                        direction: 'top'
-                    });
-                    return;
-                }
-                
-                // Format the tooltip to show only the selected property
-                const formattedValue = typeof value === 'number' ? value.toLocaleString(undefined, {
-                    maximumFractionDigits: 2
-                }) : value;
-                
-                // Unbind any existing tooltip and bind a new one
-                featureLayer.unbindTooltip();
-                featureLayer.bindTooltip(`${property}: ${formattedValue}`, {
-                    permanent: false,
-                    direction: 'top'
-                });
-            }
-        });
-        
-        // Update legend if a function was provided
-        if (typeof updateLegend === 'function') {
-            updateVectorLegend(layer, property, colorRamp, updateLegend);
-        }
-    } catch (err) {
-        console.error('Error updating vector layer style:', err);
-    }
+    return labels;
 }
 
+/**
+ * Get property fields from GeoJSON data
+ */
+function getPropertyFields(geojsonData) {
+    if (geojsonData?.features?.[0]?.properties) {
+        return Object.keys(geojsonData.features[0].properties);
+    }
+    return [];
+}
 
 /**
  * Load point data from a GeoJSON file
- * @param {string} url - URL of the GeoJSON file
- * @param {Object} options - Options for styling and interaction
- * @returns {Promise} - Promise resolving to the created layer
  */
 export function loadPointLayer(url, options = {}) {
     return fetch(url)
         .then(response => response.json())
         .then(data => {
-            // Populate property selector dropdown if specified
+            // Populate property selector if specified
             if (options.selectorId) {
                 populateDropdown(data, options.selectorId);
             }
 
             // Create the point layer
-            const pointsLayer = L.geoJSON(data, {
-                pointToLayer: options.pointToLayer || ((feature, latlng) => {
-                    return L.circleMarker(latlng, {
-                        radius: 5,
-                        fillColor: "#ff7800",
-                        color: "#000",
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    });
-                }),
+            return L.geoJSON(data, {
+                pointToLayer: options.pointToLayer || createDefaultMarker,
                 onEachFeature: (feature, layer) => {
                     if (options.tooltipFunction) {
                         options.tooltipFunction(feature, layer);
@@ -372,40 +285,43 @@ export function loadPointLayer(url, options = {}) {
                     }
                 }
             });
-            
-            return pointsLayer;
         });
 }
 
 /**
+ * Create default marker for point layer
+ */
+function createDefaultMarker(feature, latlng) {
+    return L.circleMarker(latlng, {
+        radius: 5,
+        fillColor: "#ff7800",
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+    });
+}
+
+/**
  * Update tooltip based on selected property
- * @param {Object} feature - GeoJSON feature
- * @param {Object} layer - Leaflet layer
- * @param {string} selectorId - ID of select element
  */
 export function updateTooltip(feature, layer, selectorId = 'pointValueSelector') {
     const selector = document.getElementById(selectorId);
     if (!selector) return;
     
     const selectedProperty = selector.value;
-
-    if (feature.properties && feature.properties[selectedProperty] !== undefined) {
-        layer.bindTooltip(`Value: ${feature.properties[selectedProperty]}`, {
-            permanent: false,
-            direction: 'top'
-        });
-    } else {
-        layer.bindTooltip('No value available', {
-            permanent: false,
-            direction: 'top'
-        });
-    }
+    const value = feature.properties?.[selectedProperty];
+    
+    layer.bindTooltip(
+        value !== undefined 
+            ? `Value: ${value}` 
+            : 'No value available', 
+        { permanent: false, direction: 'top' }
+    );
 }
 
 /**
- * Populate a dropdown with feature properties
- * @param {Object} data - GeoJSON data
- * @param {string} selectorId - ID of select element
+ * Populate dropdowns with properties from GeoJSON data
  */
 export function populateDropdown(data, selectorId) {
     const selector = document.getElementById(selectorId);
@@ -413,33 +329,33 @@ export function populateDropdown(data, selectorId) {
     
     selector.innerHTML = ''; // Clear existing options
     
-    const firstFeature = data.features[0];
-    if (firstFeature && firstFeature.properties) {
-        const properties = Object.keys(firstFeature.properties);
-
-        properties.forEach(prop => {
-            const option = document.createElement('option');
-            option.value = prop;
-            option.textContent = prop;
-            selector.appendChild(option);
-        });
-    } else {
+    const properties = data.features?.[0]?.properties
+        ? Object.keys(data.features[0].properties)
+        : [];
+        
+    if (properties.length === 0) {
         console.error('No properties found in the GeoJSON data.');
+        return;
     }
+
+    properties.forEach(prop => {
+        const option = document.createElement('option');
+        option.value = prop;
+        option.textContent = prop;
+        selector.appendChild(option);
+    });
 }
 
 /**
- * Populate a dropdown with property fields from a layer
- * @param {Object} layer - Leaflet GeoJSON layer
- * @param {string} selectorId - ID of the select element
+ * Populate attribute selector with fields from a layer
  */
 export function populateAttributeSelector(layer, selectorId) {
-    if (!layer || !layer.layerData || !layer.layerData.propertyFields) return;
+    if (!layer?.layerData?.propertyFields) return;
     
     const selector = document.getElementById(selectorId);
     if (!selector) return;
     
-    // Clear existing options
+    // Clear and populate selector
     selector.innerHTML = '';
     
     // Add default option
