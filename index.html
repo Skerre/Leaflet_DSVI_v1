@@ -200,5 +200,37 @@
     <script type="module" src="js/legend.js"></script>
     <script type="module" src="js/basemaps.js"></script>
     <script type="module" src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          // Hide all selectors initially
+          document.querySelectorAll('.attribute-selector, .color-ramp-selector').forEach(function(elem) {
+            elem.style.display = 'none';
+          });
+          
+          // Handle Admin Level 1
+          var checkbox1 = document.getElementById('geojsonLayer');
+          var controls1 = document.querySelectorAll('.layer-controls')[0];
+          if (checkbox1 && controls1) {
+            checkbox1.addEventListener('change', function() {
+              var attributeSelector = controls1.querySelector('.attribute-selector');
+              var colorSelector = controls1.querySelector('.color-ramp-selector');
+              if (attributeSelector) attributeSelector.style.display = this.checked ? 'block' : 'none';
+              if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
+            });
+          }
+          
+          // Handle Admin Level 2
+          var checkbox2 = document.getElementById('geojsonLayer2');
+          var controls2 = document.querySelectorAll('.layer-controls')[1];
+          if (checkbox2 && controls2) {
+            checkbox2.addEventListener('change', function() {
+              var attributeSelector = controls2.querySelector('.attribute-selector');
+              var colorSelector = controls2.querySelector('.color-ramp-selector');
+              if (attributeSelector) attributeSelector.style.display = this.checked ? 'block' : 'none';
+              if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
+            });
+          }
+        });
+      </script>
 </body>
 </html>
