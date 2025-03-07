@@ -27,9 +27,9 @@
             <img src="assets/sdgai.png" alt="SDG AI Logo" class="logo-image">
         </div>
         <ul class="navbar-menu">
-            <li><a href="index.html">Map</a></li>
-            <li><a href="html/about.html">About Us</a></li>
-            <li><a href="html/more.html">More Information</a></li>
+            <li><a href="index.html" class="larger-nav-link">Map</a></li>
+            <li><a href="html/about.html" class="larger-nav-link">About Us</a></li>
+            <li><a href="html/more.html" class="larger-nav-link">More Information</a></li>
         </ul>
         <div class="navbar-logo navbar-logo-right">
             <img src="assets/undp_logo.png" alt="UNDP Logo" class="logo-image">
@@ -40,11 +40,11 @@
     <div class="main-container">
         <!-- Sidebar with layer controls -->
         <div id="sidebar">
-            <h3>Datasets</h3>
+            <!-- <h3>Datasets</h3> -->
             
             <!-- Vector Layers Dropdown -->
             <div class="layer-group">
-                <button class="dropdown-btn">Vector Layers</button>
+                <button class="dropdown-btn"><strong>Vector Layers</strong></button>
                 <div class="dropdown-container">
                     <!-- Admin Level 1 Layer -->
                     <div class="layer-checkbox">
@@ -100,7 +100,7 @@
 
             <!-- Raster Layers Dropdown -->
             <div class="layer-group">
-                <button class="dropdown-btn">Raster Layers</button>
+                <button class="dropdown-btn"><strong>Raster Layers</strong></button>
                 <div class="dropdown-container">
                     <!-- Raster layer controls -->
                     <template id="raster-layer-template">
@@ -114,7 +114,16 @@
                             <span id="opacityValueId">100%</span>
                         </div>
                     </template>
-                    
+                   <!-- Social Vulnerability -->
+                    <div class="layer-checkbox">
+                        <input type="checkbox" id="tiffLayer3">
+                        <label for="tiffLayer3">Social Vulnerability</label>
+                    </div>
+                    <div class="opacity-control">
+                        <label for="tiffOpacity3">Opacity</label>
+                        <input type="range" id="tiffOpacity3" min="0" max="1" step="0.1" value="1">
+                        <span id="tiffOpacityValue3">100%</span>
+                    </div>
                     <!-- Cell Tower Density -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="tiffLayer1">
@@ -136,18 +145,6 @@
                         <input type="range" id="tiffOpacity2" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue2">100%</span>
                     </div>
-                    
-                    <!-- Social Vulnerability -->
-                    <div class="layer-checkbox">
-                        <input type="checkbox" id="tiffLayer3">
-                        <label for="tiffLayer3">Social Vulnerability</label>
-                    </div>
-                    <div class="opacity-control">
-                        <label for="tiffOpacity3">Opacity</label>
-                        <input type="range" id="tiffOpacity3" min="0" max="1" step="0.1" value="1">
-                        <span id="tiffOpacityValue3">100%</span>
-                    </div>
-                    
                     <!-- Relative Wealth -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="tiffLayer4">
@@ -157,13 +154,43 @@
                         <label for="tiffOpacity4">Opacity</label>
                         <input type="range" id="tiffOpacity4" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue4">100%</span>
+                    </div>                    
+                    <!-- Nightlight Intensity -->
+                    <div class="layer-checkbox">
+                        <input type="checkbox" id="tiffLayer7">
+                        <label for="tiffLayer4">Nightlight Intensity</label>
                     </div>
+                    <div class="opacity-control">
+                        <label for="tiffOpacity7">Opacity</label>
+                        <input type="range" id="tiffOpacity7" min="0" max="1" step="0.1" value="1">
+                        <span id="tiffOpacityValue7">100%</span>
+                    </div>       
+                    <!-- NDVI -->
+                    <div class="layer-checkbox">
+                        <input type="checkbox" id="tiffLayer6">
+                        <label for="tiffLayer6">NDVI</label>
+                    </div>
+                    <div class="opacity-control">
+                        <label for="tiffOpacity6">Opacity</label>
+                        <input type="range" id="tiffOpacity6" min="0" max="1" step="0.1" value="1">
+                        <span id="tiffOpacityValue6">100%</span>
+                    </div>                     
+                    <!-- Conflicts -->
+                    <div class="layer-checkbox">
+                        <input type="checkbox" id="tiffLayer5">
+                        <label for="tiffLayer5">Conflicts</label>
+                    </div>
+                    <div class="opacity-control">
+                        <label for="tiffOpacity5">Opacity</label>
+                        <input type="range" id="tiffOpacity5" min="0" max="1" step="0.1" value="1">
+                        <span id="tiffOpacityValue5">100%</span>
+                    </div>  
                 </div>
             </div>
 
             <!-- Point Layers Dropdown -->
             <div class="layer-group">
-                <button class="dropdown-btn">Point Layers</button>
+                <button class="dropdown-btn"><strong>Point Layers</strong></button>
                 <div class="dropdown-container">
                     <div class="layer-checkbox">
                         <input type="checkbox" id="pointLayer">
@@ -185,10 +212,10 @@
         <!-- Statistics container -->
         <div id="stats-container" style="display: none; position: absolute; top: 10px; right: 10px; z-index: 1000; padding: 10px; background: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);"></div>
         
-        <!-- Map container -->
+        <!-- Map container left -->
         <div id="map"></div>
     </div>
-
+ -->
     <!-- Legend -->
     <div id="legend" class="legend"></div>
     
@@ -196,7 +223,7 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.15.0/proj4.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.sync@0.2.4/L.Map.Sync.min.js"></script>
     <!-- Application scripts -->
     <script type="module" src="js/color_scales.js"></script>
     <script type="module" src="js/color_ramp_selector.js"></script>

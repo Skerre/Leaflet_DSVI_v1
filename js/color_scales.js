@@ -18,7 +18,7 @@ export const colorScales = {
     
     // Social vulnerability color scale
     socialVulnerability: {
-        ranges: [0, 0.2, 0.4, 0.6, 0.8, 1],
+        ranges: [0, 0.2, 0.4, 0.6, 0.7, 0.8],
         colors: ['#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'], // Blue to Red
     },
     

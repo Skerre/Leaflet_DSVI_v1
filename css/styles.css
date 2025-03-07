@@ -187,7 +187,7 @@ body {
 /* Legend styling */
 .legend {
     position: absolute;
-    bottom: 10px;
+    bottom: 30px;
     right: 10px;
     background: white;
     border: 1px solid #ccc;
@@ -292,6 +292,64 @@ body {
     display: none;
     margin-top: 10px;
     width: 100%;
+}
+/* Country outline toggle button styles */
+.outline-toggle-control {
+    background: white;
+    padding: 5px;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+
+.outline-toggle-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 5px 10px;
+    min-width: 180px;
+    height: 30px;
+    line-height: 20px;
+    text-align: left;
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.outline-toggle-button:hover {
+    background-color: #f4f4f4;
+}
+
+.outline-toggle-button.active {
+    background-color: #e6e6e6;
+    color: #0078A8;
+}
+
+.outline-toggle-button span {
+    margin-right: 8px;
+}
+/* Add this to your styles.css file */
+.larger-nav-link {
+    font-size: 18px;  /* Increase font size */
+    padding: 10px 15px;  /* Add more padding around the text */
+    font-weight: bold;  /* Make the text bold */
+}
+
+/* You might also want to adjust the existing navbar styles */
+.navbar-menu {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.navbar-menu li {
+    margin: 0 15px;
+}
+
+/* Ensure the hover effect still works */
+.navbar-menu a:hover {
+    color: #ddd;
 }
 
 .attribute-selector label,

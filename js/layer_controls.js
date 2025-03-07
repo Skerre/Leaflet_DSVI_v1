@@ -9,7 +9,7 @@ const layerConfig = {
     // Vector layers
     geojsonLayer: {
         type: 'vector',
-        url: 'data/sample_adm1_vector.geojson',
+        url: 'data/adm1_summary_stats_1.geojson',
         style: {
             color: "#3388ff",
             weight: 2,
@@ -84,6 +84,36 @@ const layerConfig = {
         colorScale: 'relativeWealth',
         legendTitle: 'Relative Wealth',
         legendDescription: 'Gradient representing relative wealth index.',
+        legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
+    },
+    tiffLayer5: {
+        type: 'raster',
+        url: 'data/conflict4.tif',
+        opacityControl: 'tiffOpacity5',
+        opacityDisplay: 'tiffOpacityValue5',
+        colorScale: 'relativeWealth',
+        legendTitle: 'Conflict Event Heatmap',
+        legendDescription: 'Gradient representing number of conflict events in the past 20 years.',
+        legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
+    },
+    tiffLayer6: {
+        type: 'raster',
+        url: 'data/ndvi2.tif',
+        opacityControl: 'tiffOpacity6',
+        opacityDisplay: 'tiffOpacityValue6',
+        colorScale: 'relativeWealth',
+        legendTitle: 'Relative Wealth',
+        legendDescription: 'Gradient representing Normalized Difference Vegetation Index.',
+        legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
+    },
+    tiffLayer7: {
+        type: 'raster',
+        url: 'data/ntl2.tif',
+        opacityControl: 'tiffOpacity7',
+        opacityDisplay: 'tiffOpacityValue7',
+        colorScale: 'relativeWealth',
+        legendTitle: 'Relative Wealth',
+        legendDescription: 'Gradient representing nightlight intensity.',
         legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
     }
 };
