@@ -1,4 +1,7 @@
-body {
+/* =========================================
+   * Base Styles
+   * ========================================= */
+   body {
     margin: 0;
     display: flex;
     flex-direction: column;
@@ -7,13 +10,15 @@ body {
     font-family: Calibri, sans-serif;
 }
 
-/* Top Navigation Bar */
+/* =========================================
+   * Navigation Bar
+   * ========================================= */
 #navbar {
-	height: 10%;
+    height: 10%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #343a40; /* Dark gray background */
+    background-color: #343a40;
     padding: 10px 20px;
     color: white;
 }
@@ -50,13 +55,23 @@ body {
     color: #ddd;
 }
 
-/* Main container to hold the sidebar and map */
+.larger-nav-link {
+    font-size: 18px;
+    padding: 10px 15px;
+}
+
+/* =========================================
+   * Main Layout
+   * ========================================= */
 .main-container {
     display: flex;
-    flex: 1; /* Takes up the remaining space below the navbar */
+    flex: 1;
     overflow: hidden;
 }
 
+/* =========================================
+   * Sidebar Styles
+   * ========================================= */
 #sidebar {
     width: 20%;
     background: #e0e0e0;
@@ -67,16 +82,25 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    z-index: 1; /* Ensures the sidebar stays above the map */
+    z-index: 10;
 }
 
-#map {
-    flex: 1; /* Fills the remaining space */
-    position: relative; /* Ensures the map respects the sidebar's width */
-    z-index: 0;
-    height: 100%; /* Ensure the map takes full height */
+#sidebar::-webkit-scrollbar {
+    width: 8px;
 }
 
+#sidebar::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 10px;
+}
+
+#sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+
+/* =========================================
+   * Dropdown Controls
+   * ========================================= */
 .layer-group {
     width: 100%;
     margin-bottom: 10px;
@@ -97,14 +121,13 @@ body {
 }
 
 .dropdown-btn:after {
-    content: '\25BC'; /* Down arrow */
+    content: '\25BC';
     float: right;
     margin-left: 10px;
-	margin-right: 10px;
 }
 
 .dropdown-btn.active:after {
-    content: '\25B2'; /* Up arrow */
+    content: '\25B2';
 }
 
 .dropdown-container {
@@ -112,24 +135,24 @@ body {
     overflow: hidden;
     background-color: #f1f1f1;
     border-radius: 5px;
-    padding: 0px;
     width: 100%;
 }
 
+/* =========================================
+   * Layer Controls
+   * ========================================= */
 .layer-checkbox {
     margin: 5px 0;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
     padding: 5px 10px;
 }
 
 .opacity-control {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
     margin-top: 5px;
-	margin-left: 5px;
+    margin-left: 5px;
     padding: 5px;
 }
 
@@ -142,9 +165,9 @@ body {
 /* Custom slider styles */
 .opacity-control input[type="range"] {
     width: 80px;
-    -webkit-appearance: none; /* Remove default styling */
+    -webkit-appearance: none;
     appearance: none;
-    background: #ddd; /* Track background color */
+    background: #ddd;
     height: 4px;
     border-radius: 5px;
     outline: none;
@@ -152,39 +175,118 @@ body {
 
 .opacity-control input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    appearance: none;
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: #6c757d; /* Thumb color */
+    background: #6c757d;
     cursor: pointer;
-    border: 2px solid #343a40; /* Border color around the thumb */
+    border: 2px solid #343a40;
 }
 
 .opacity-control input[type="range"]::-moz-range-thumb {
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: #6c757d; /* Thumb color */
+    background: #6c757d;
     cursor: pointer;
-    border: 2px solid #343a40; /* Border color around the thumb */
+    border: 2px solid #343a40;
 }
 
-
-#sidebar::-webkit-scrollbar {
-    width: 8px;
+/* =========================================
+   * Split Map Layout
+   * ========================================= */
+#map, #compare-map {
+    will-change: width;
 }
 
-#sidebar::-webkit-scrollbar-thumb {
-    background-color: #888;
-    border-radius: 10px;
+.leaflet-container {
+    width: 100%;
+    height: 100%;
 }
 
-#sidebar::-webkit-scrollbar-thumb:hover {
-    background-color: #555;
+#map-divider {
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+    will-change: left;
 }
 
-/* Legend styling */
+#map-divider:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* =========================================
+   * Map Controls
+   * ========================================= */
+/* Stacking controls properly */
+.leaflet-bottom.leaflet-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.leaflet-bottom.leaflet-left .leaflet-control {
+    margin-bottom: 10px;
+    clear: both;
+}
+
+/* Country outline toggle button */
+.outline-toggle-control {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+
+.outline-toggle-button {
+    display: block;
+    text-align: center;
+    padding: 5px 8px;
+    font-size: 16px;
+    color: #333;
+    background-color: white;
+    text-decoration: none;
+}
+
+.outline-toggle-button:hover {
+    background-color: #f4f4f4;
+}
+
+.outline-toggle-button.active {
+    background-color: #e6e6e6;
+    color: #0078A8;
+}
+
+/* Basemap control styles */
+.basemap-control {
+    background-color: white;
+    padding: 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.combined-basemap-control {
+    width: 220px;
+}
+
+.basemap-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #495057;
+}
+
+.basemap-select {
+    width: 100%;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    font-size: 14px;
+}
+
+.basemap-select-group {
+    margin-bottom: 8px;
+}
+
+/* =========================================
+   * Legend Styling
+   * ========================================= */
 .legend {
     position: absolute;
     bottom: 30px;
@@ -197,7 +299,7 @@ body {
     line-height: 1.4;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     z-index: 1000;
-    display: block; /* Changed to block to make it visible */
+    display: block;
 }
 
 .legend h4 {
@@ -211,67 +313,9 @@ body {
     color: #555;
 }
 
-/* Style for the dropdown menu container */
-
-#floating-control select {
-    width: 150px; /* Set the visible dropdown width */
-    max-width: 150px; /* Ensure the options inside also stay within this width */
-    padding: 5px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #f9f9f9;
-    color: #333;
-    outline: none;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-    white-space: nowrap; /* Prevent text wrapping inside options */
-    overflow: hidden; /* Clip text that overflows */
-    text-overflow: ellipsis; /* Show ellipsis (...) for long text */
-}
-
-/* Optional: Style individual options */
-#floating-control select option {
-    max-width: 150px; /* Match the dropdown's width */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Truncate long text with ellipsis */
-    white-space: nowrap; /* Prevent wrapping */
-}
-
-
-/* Style for the label inside the dropdown */
-#floating-control label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #333;
-    font-weight: bold;
-}
-
-/* Style for the dropdown menu itself */
-#floating-control select {
-    width: 100%;
-    padding: 15px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #f9f9f9;
-    color: #333;
-    outline: none;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* Add hover effect for the dropdown menu */
-#floating-control select:hover {
-    border-color: #888;
-}
-
-/* Add focus effect for the dropdown menu */
-#floating-control select:focus {
-    
-    border-color: #555;
-    box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
-}
-
+/* =========================================
+   * Tooltips
+   * ========================================= */
 .leaflet-tooltip {
     background-color: white;
     border: 1px solid black;
@@ -281,7 +325,9 @@ body {
     font-family: Arial, sans-serif;
 }
 
-/* Additional styles for attribute selectors and color ramp controls */
+/* =========================================
+   * Layer Controls
+   * ========================================= */
 .layer-controls {
     padding: 5px 15px;
     margin-bottom: 10px;
@@ -292,64 +338,6 @@ body {
     display: none;
     margin-top: 10px;
     width: 100%;
-}
-/* Country outline toggle button styles */
-.outline-toggle-control {
-    background: white;
-    padding: 5px;
-    border-radius: 4px;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-}
-
-.outline-toggle-button {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 5px 10px;
-    min-width: 180px;
-    height: 30px;
-    line-height: 20px;
-    text-align: left;
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 14px;
-    white-space: nowrap;
-}
-
-.outline-toggle-button:hover {
-    background-color: #f4f4f4;
-}
-
-.outline-toggle-button.active {
-    background-color: #e6e6e6;
-    color: #0078A8;
-}
-
-.outline-toggle-button span {
-    margin-right: 8px;
-}
-/* Add this to your styles.css file */
-.larger-nav-link {
-    font-size: 18px;  /* Increase font size */
-    padding: 10px 15px;  /* Add more padding around the text */
-    font-weight: bold;  /* Make the text bold */
-}
-
-/* You might also want to adjust the existing navbar styles */
-.navbar-menu {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.navbar-menu li {
-    margin: 0 15px;
-}
-
-/* Ensure the hover effect still works */
-.navbar-menu a:hover {
-    color: #ddd;
 }
 
 .attribute-selector label,
@@ -384,25 +372,18 @@ body {
     border: 1px solid #ced4da;
 }
 
-/* Basemap control styles */
-.basemap-control {
-    background-color: white !important;
-    padding: 8px !important;
-    border-radius: 4px !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+/* =========================================
+   * Raster Image Rendering
+   * ========================================= */
+.crisp-image {
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
-.basemap-label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #495057;
-}
-
-.basemap-select {
-    width: 100%;
-    padding: 5px;
-    border-radius: 4px;
-    border: 1px solid #ced4da;
-    font-size: 14px;
+.smooth-image {
+    image-rendering: auto;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }

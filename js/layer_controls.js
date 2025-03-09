@@ -1,7 +1,7 @@
 // layer_controls.js - Event handlers for layer controls
 
 import { loadVectorLayer, loadPointLayer, updateTooltip, updateVectorLayerStyle, populateAttributeSelector } from './vector_layers.js';
-import { loadTiff } from './tiff_loader.js';
+import { loadTiff } from './zoom-adaptive-tiff-loader.js';
 import { setupColorRampSelector, getColorRamp } from './color_ramp_selector.js';
 
 // Layer configuration - maps checkbox IDs to loading functions and parameters
