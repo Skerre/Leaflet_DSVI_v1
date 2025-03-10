@@ -195,24 +195,55 @@
 /* =========================================
    * Split Map Layout
    * ========================================= */
-#map, #compare-map {
-    will-change: width;
-}
 
-.leaflet-container {
+
+   #map-split-wrapper {
+    position: relative;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+}
+   #map, #compare-map {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.leaflet-container {
+    transition: none !important;
 }
 
 #map-divider {
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
-    will-change: left;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: rgba(0, 0, 0, 0.5);
+    cursor: col-resize;
+    z-index: 1000;
+    transition: background-color 0.2s;
 }
 
 #map-divider:hover {
     background-color: rgba(0, 0, 0, 0.7);
 }
 
+#map-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 40px;
+    background-color: white;
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+}
 /* =========================================
    * Map Controls
    * ========================================= */

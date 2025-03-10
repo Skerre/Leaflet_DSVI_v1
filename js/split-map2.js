@@ -1,4 +1,4 @@
-// split-map.js - Improved implementation with a true reveal slider
+// split-map.js - Custom split map implementation
 
 /**
  * Creates a split map with a draggable divider
@@ -45,28 +45,19 @@ function createMapContainers(mainMapId, compareMapId, initialSplit) {
     mapWrapper.style.height = '100%';
     mapWrapper.style.overflow = 'hidden';
     
-    // Store the original size and clear any existing styles
-    const originalWidth = originalContainer.offsetWidth;
-    const originalHeight = originalContainer.offsetHeight;
-    
-    // Configure main map container (will take full width)
-    originalContainer.style.width = '100%';
+    // Configure main map container
+    originalContainer.style.width = `${initialSplit}%`;
     originalContainer.style.height = '100%';
-    originalContainer.style.position = 'absolute';
-    originalContainer.style.top = '0';
-    originalContainer.style.left = '0';
+    originalContainer.style.position = 'relative';
     originalContainer.style.zIndex = '1';
     
-    // Create comparison map container (will also take full width but be clipped)
+    // Create comparison map container
     const compareContainer = document.createElement('div');
     compareContainer.id = compareMapId;
-    compareContainer.style.width = '100%';
+    compareContainer.style.width = `${100 - initialSplit}%`;
     compareContainer.style.height = '100%';
-    compareContainer.style.position = 'absolute';
-    compareContainer.style.top = '0';
-    compareContainer.style.left = '0';
-    compareContainer.style.zIndex = '2';
-    compareContainer.style.clipPath = `polygon(${initialSplit}% 0, 100% 0, 100% 100%, ${initialSplit}% 100%)`;
+    compareContainer.style.position = 'relative';
+    compareContainer.style.zIndex = '1';
     
     // Create the divider
     const divider = document.createElement('div');
@@ -75,28 +66,29 @@ function createMapContainers(mainMapId, compareMapId, initialSplit) {
     divider.style.top = '0';
     divider.style.bottom = '0';
     divider.style.left = `${initialSplit}%`;
-    divider.style.width = '4px';
-    divider.style.marginLeft = '-2px';
+    divider.style.width = '8px';
+    divider.style.marginLeft = '-4px';
     divider.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
     divider.style.cursor = 'col-resize';
     divider.style.zIndex = '1000';
     
-    // Add divider handle for better usability
+    // Add simplified divider handle
     const handle = document.createElement('div');
     handle.style.position = 'absolute';
     handle.style.top = '50%';
     handle.style.left = '50%';
     handle.style.transform = 'translate(-50%, -50%)';
-    handle.style.width = '20px';
-    handle.style.height = '40px';
+    handle.style.width = '16px';
+    handle.style.height = '36px';
     handle.style.backgroundColor = 'white';
     handle.style.borderRadius = '3px';
     handle.style.display = 'flex';
     handle.style.justifyContent = 'center';
     handle.style.alignItems = 'center';
-    handle.innerHTML = '‖';
+    handle.innerHTML = '‖'; // Simplified handle symbol
     handle.style.fontSize = '16px';
     handle.style.color = '#333';
+    handle.style.userSelect = 'none';
     
     // Attach handle to divider
     divider.appendChild(handle);
@@ -147,7 +139,8 @@ function syncMaps(sourceMap, targetMap) {
 function setupDivider(mainMap, compareMap, initialSplit) {
     const divider = document.getElementById('map-divider');
     const wrapper = document.getElementById('map-split-wrapper');
-    const compareMapEl = document.getElementById(compareMap.getContainer().id);
+    const mainMapEl = mainMap.getContainer();
+    const compareMapEl = compareMap.getContainer();
     
     let isDragging = false;
     let startX, startLeft;
@@ -171,6 +164,11 @@ function setupDivider(mainMap, compareMap, initialSplit) {
         overlay.style.zIndex = '999';
         overlay.style.cursor = 'col-resize';
         wrapper.appendChild(overlay);
+        
+        // Disable transitions during drag for better performance
+        mainMapEl.style.transition = 'none';
+        compareMapEl.style.transition = 'none';
+        divider.style.transition = 'none';
     });
     
     // Mouse move event (when dragging)
@@ -197,8 +195,11 @@ function setupDivider(mainMap, compareMap, initialSplit) {
             // Update divider position
             divider.style.left = `${limitedPercentage}%`;
             
-            // Update clip path for the compare map
-            compareMapEl.style.clipPath = `polygon(${limitedPercentage}% 0, 100% 0, 100% 100%, ${limitedPercentage}% 100%)`;
+            // Update map widths
+            mainMapEl.style.width = `${limitedPercentage}%`;
+            compareMapEl.style.width = `${100 - limitedPercentage}%`;
+            
+            // We'll only update map sizes at the end of drag for better performance
         });
     });
     
@@ -212,6 +213,11 @@ function setupDivider(mainMap, compareMap, initialSplit) {
         const overlay = document.getElementById('map-drag-overlay');
         if (overlay) overlay.remove();
         
+        // Re-enable transitions
+        mainMapEl.style.transition = '';
+        compareMapEl.style.transition = '';
+        divider.style.transition = '';
+        
         // Force maps to update size once at the end
         mainMap.invalidateSize();
         compareMap.invalidateSize();
@@ -223,6 +229,10 @@ function setupDivider(mainMap, compareMap, initialSplit) {
         isDragging = true;
         startX = e.touches[0].clientX;
         startLeft = divider.offsetLeft;
+        
+        mainMapEl.style.transition = 'none';
+        compareMapEl.style.transition = 'none';
+        divider.style.transition = 'none';
     });
     
     document.addEventListener('touchmove', function(e) {
@@ -241,7 +251,8 @@ function setupDivider(mainMap, compareMap, initialSplit) {
             const limitedPercentage = Math.min(Math.max(percentage, 10), 90);
             
             divider.style.left = `${limitedPercentage}%`;
-            compareMapEl.style.clipPath = `polygon(${limitedPercentage}% 0, 100% 0, 100% 100%, ${limitedPercentage}% 100%)`;
+            mainMapEl.style.width = `${limitedPercentage}%`;
+            compareMapEl.style.width = `${100 - limitedPercentage}%`;
         });
     });
     
@@ -249,6 +260,10 @@ function setupDivider(mainMap, compareMap, initialSplit) {
         if (!isDragging) return;
         
         isDragging = false;
+        
+        mainMapEl.style.transition = '';
+        compareMapEl.style.transition = '';
+        divider.style.transition = '';
         
         mainMap.invalidateSize();
         compareMap.invalidateSize();
