@@ -14,7 +14,7 @@ export const CombinedBasemapControl = L.Control.extend({
         L.setOptions(this, options);
         this.mainMap = mainMap;
         this.compareMap = compareMap;
-        this._mainBasemap = 'stadiaMapsDark';
+        this._mainBasemap = 'osm';
         this._compareBasemap = 'esriWorldImagery';
     },
 

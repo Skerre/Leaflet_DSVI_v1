@@ -103,7 +103,7 @@ export const basemapOptions = [
  * @param {Object} map - Leaflet map instance
  */
 export function addDefaultBasemap(map) {
-    basemaps.stadiaMapsDark.addTo(map);  // Changed default to Carto Light for reliability
+    basemaps.osm.addTo(map);  // Changed default to Carto Light for reliability
 }
 
 /**
@@ -139,7 +139,7 @@ export const BasemapControl = L.Control.extend({
         });
         
         // Set initial selected value
-        select.value = 'stadiaMapsDark';  // Match the default basemap
+        select.value = 'osm';  // Match the default basemap
 
         // Handle basemap change
         L.DomEvent.on(select, 'change', function () {
