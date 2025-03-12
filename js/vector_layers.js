@@ -1,4 +1,73 @@
 // vector_layers.js - Functions for handling vector and point data
+export { getColorFromRamp, formatValue, updateVectorLegend };
+
+export function updatePointLayerStyle(layer, property, colorRamp, opacity = 1, updateLegend = null) {
+    if (!layer || !property || !colorRamp?.colors) {
+        console.error('Missing required parameters for updatePointLayerStyle');
+        return;
+    }
+    
+    // Get all data for classification
+    const data = {
+        features: []
+    };
+    
+    // Collect all features for analysis
+    layer.eachLayer(featureLayer => {
+        if (featureLayer.feature) {
+            data.features.push(featureLayer.feature);
+        }
+    });
+    
+    if (data.features.length === 0) return;
+    
+    try {
+        // Update styles and tooltips
+        layer.eachLayer(featureLayer => {
+            if (!featureLayer.feature?.properties) return;
+            
+            const value = featureLayer.feature.properties[property];
+            const numValue = Number(value);
+            
+            if (!isNaN(numValue)) {
+                // Get color for this value
+                const color = getColorFromRamp(
+                    numValue,
+                    data,
+                    property,
+                    colorRamp
+                );
+                
+                // Update style
+                featureLayer.setStyle({
+                    fillColor: color,
+                    color: '#333',
+                    weight: 1,
+                    fillOpacity: opacity,
+                    opacity: opacity
+                });
+            }
+            
+            // Update tooltip
+            const tooltipContent = value === undefined
+                ? `No data for ${property}`
+                : `${property}: ${formatValue(value)}`;
+                
+            featureLayer.unbindTooltip();
+            featureLayer.bindTooltip(tooltipContent, {
+                permanent: false,
+                direction: 'top'
+            });
+        });
+        
+        // Update legend if function provided
+        if (typeof updateLegend === 'function') {
+            updateVectorLegend(layer, property, colorRamp, updateLegend);
+        }
+    } catch (err) {
+        console.error('Error updating point layer style:', err);
+    }
+}
 
 /**
  * Load a vector layer from a GeoJSON file with updated tooltip handling
@@ -262,9 +331,6 @@ function getPropertyFields(geojsonData) {
     return [];
 }
 
-/**
- * Load point data from a GeoJSON file
- */
 export function loadPointLayer(url, options = {}) {
     return fetch(url)
         .then(response => response.json())
@@ -275,7 +341,7 @@ export function loadPointLayer(url, options = {}) {
             }
 
             // Create the point layer
-            return L.geoJSON(data, {
+            const pointLayer = L.geoJSON(data, {
                 pointToLayer: options.pointToLayer || createDefaultMarker,
                 onEachFeature: (feature, layer) => {
                     if (options.tooltipFunction) {
@@ -285,6 +351,16 @@ export function loadPointLayer(url, options = {}) {
                     }
                 }
             });
+            
+            // Store property fields for later use (similar to vector layers)
+            pointLayer.layerData = {
+                raw: data,
+                propertyFields: getPropertyFields(data),
+                selectedProperty: options.selectedProperty || null,
+                colorRamp: options.colorRamp || null
+            };
+            
+            return pointLayer;
         });
 }
 

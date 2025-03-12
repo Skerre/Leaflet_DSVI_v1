@@ -1,6 +1,11 @@
 // layer_controls.js - Event handlers for layer controls
 
-import { loadVectorLayer, loadPointLayer, updateTooltip, updateVectorLayerStyle, populateAttributeSelector } from './vector_layers.js';
+import { loadVectorLayer, 
+    loadPointLayer, 
+    updateTooltip, 
+    updateVectorLayerStyle, 
+    updatePointLayerStyle, 
+    populateAttributeSelector } from './vector_layers.js';
 import { loadTiff } from './zoom-adaptive-tiff-loader.js';
 import { setupColorRampSelector, getColorRamp } from './color_ramp_selector.js';
 
@@ -37,13 +42,16 @@ const layerConfig = {
         colorRampSelector: 'vectorColorRamp2',
         colorRampPreview: 'vectorColorPreview2'
     },
-    // Point layer
     pointLayer: {
         type: 'point',
         url: 'data/sample-points_2.geojson',
         opacityControl: 'pointOpacity',
         opacityDisplay: 'pointOpacityValue',
-        selectorId: 'pointValueSelector'
+        selectorId: 'pointValueSelector',
+        // Add these new properties:
+        colorRampSelector: 'pointColorRamp',
+        colorRampPreview: 'pointColorPreview',
+        attributeSelector: 'pointValueSelector'  // Reuse existing selector
     },
     // Raster layers
     tiffLayer1: {
@@ -142,10 +150,29 @@ export function setupLayerControls(map, layers, colorScales, updateLegend, hideL
         if (config.type === 'vector' && config.attributeSelector && config.colorRampSelector) {
             setupVectorControls(layerId, map, layers, config, updateLegend);
         }
+
+        if (config.type === 'point' && config.colorRampSelector) {
+            setupPointControls(layerId, map, layers, config, updateLegend);
+        }
     });
     
     // Setup point layer property selector
     setupPointLayerSelector(layers);
+}
+/**
+ * Setup point layer color ramp controls
+ */
+function setupPointControls(layerId, map, layers, config, updateLegend) {
+    // Setup color ramp selector
+    setupColorRampSelector(config.colorRampSelector, config.colorRampPreview, () => {
+        updatePointLayerFromControls(layerId, layers, updateLegend);
+    });
+    const attributeSelector = document.getElementById(config.attributeSelector);
+    if (attributeSelector) {
+        attributeSelector.addEventListener('change', () => {
+            updatePointLayerFromControls(layerId, layers, updateLegend);
+        });
+    }
 }
 
 /**
@@ -243,6 +270,38 @@ function setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideL
             removeLayer(layerId, map, layers, hideLegend);
         }
     });
+}
+
+/**
+ * Update point layer based on selected attribute and color ramp
+ */
+function updatePointLayerFromControls(layerId, layers, updateLegend) {
+    const config = layerConfig[layerId];
+    if (!config || !layers.point) return;
+    
+    // Get selected attribute
+    const attributeSelector = document.getElementById(config.attributeSelector);
+    if (!attributeSelector || !attributeSelector.value) return;
+    
+    // Get selected color ramp
+    const colorRampSelector = document.getElementById(config.colorRampSelector);
+    if (!colorRampSelector || !colorRampSelector.value) return;
+    
+    const colorRamp = getColorRamp(colorRampSelector.value);
+    if (!colorRamp) return;
+    
+    // Get opacity value
+    const opacitySlider = document.getElementById(config.opacityControl);
+    const opacity = opacitySlider ? parseFloat(opacitySlider.value) : 1;
+    
+    // Update the point layer style
+    updatePointLayerStyle(
+        layers.point, 
+        attributeSelector.value, 
+        colorRamp, 
+        opacity, 
+        updateLegend
+    );
 }
 
 /**
@@ -387,3 +446,4 @@ function updateLayerOpacity(layerType, layerId, layers, opacity, updateLegend) {
             break;
     }
 }
+

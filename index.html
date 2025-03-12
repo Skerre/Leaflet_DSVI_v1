@@ -205,6 +205,11 @@
                         <label for="pointValueSelector">Value to Display:</label>
                         <select id="pointValueSelector"></select>
                     </div>
+                    <div class="color-ramp-selector">
+                        <label for="pointColorRamp">Color Scheme:</label>
+                        <select id="pointColorRamp"></select>
+                        <div id="pointColorPreview" class="color-preview"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -271,19 +276,22 @@
             
             // Set up point layer controls
             function setupPointControls() {
-                const pointCheckbox = document.getElementById('pointLayer');
-                const pointSelector = document.getElementById('pointValueSelector');
-                
-                if (pointCheckbox && pointSelector) {
-                    // Initially hide the selector
-                    pointSelector.parentElement.style.display = 'none';
-                    
-                    pointCheckbox.addEventListener('change', function() {
-                        // Show/hide the selector based on checkbox state
-                        pointSelector.parentElement.style.display = this.checked ? 'block' : 'none';
-                    });
-                }
-            }
+    const pointCheckbox = document.getElementById('pointLayer');
+    const pointSelector = document.getElementById('pointValueSelector');
+    const colorSelector = document.getElementById('pointColorRamp').parentElement;
+    
+    if (pointCheckbox && pointSelector) {
+        // Initially hide the selectors
+        pointSelector.parentElement.style.display = 'none';
+        if (colorSelector) colorSelector.style.display = 'none';
+        
+        pointCheckbox.addEventListener('change', function() {
+            // Show/hide the selectors based on checkbox state
+            pointSelector.parentElement.style.display = this.checked ? 'block' : 'none';
+            if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+}
         });
     </script>
 </body>
