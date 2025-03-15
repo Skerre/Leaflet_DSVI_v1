@@ -81,7 +81,7 @@ async function loadCountryOutline(map) {
                 color: "#3388ff",
                 weight: 2,
                 opacity: 1,
-                fillOpacity: 0.1
+                fillOpacity: 0
             }
         });
         
@@ -101,13 +101,13 @@ async function loadCountryOutline(map) {
  */
 function createOutlineToggle(map) {
     const OutlineControl = L.Control.extend({
-        options: { position: 'bottomleft' },
+        options: { position: 'topleft' },
         
         onAdd: function() {
             const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control outline-toggle-control');
             const button = L.DomUtil.create('a', 'outline-toggle-button', container);
             button.href = '#';
-            button.innerHTML = '🗺️';
+            button.innerHTML = '🗺️ Toggle Outline';
             button.classList.add('active');
             
             L.DomEvent.on(button, 'click', function(e) {

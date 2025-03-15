@@ -191,8 +191,8 @@ function setupDivider(mainMap, compareMap, initialSplit) {
             const wrapperWidth = wrapper.offsetWidth;
             const percentage = (newLeft / wrapperWidth) * 100;
             
-            // Constrain to reasonable limits (10% - 90%)
-            const limitedPercentage = Math.min(Math.max(percentage, 10), 90);
+            // Constrain to reasonable limits (10% - 98%)
+            const limitedPercentage = Math.min(Math.max(percentage, 10), 98);
             
             // Update divider position
             divider.style.left = `${limitedPercentage}%`;
@@ -238,7 +238,7 @@ function setupDivider(mainMap, compareMap, initialSplit) {
             
             const wrapperWidth = wrapper.offsetWidth;
             const percentage = (newLeft / wrapperWidth) * 100;
-            const limitedPercentage = Math.min(Math.max(percentage, 10), 90);
+            const limitedPercentage = Math.min(Math.max(percentage, 10), 98);
             
             divider.style.left = `${limitedPercentage}%`;
             compareMapEl.style.clipPath = `polygon(${limitedPercentage}% 0, 100% 0, 100% 100%, ${limitedPercentage}% 100%)`;
