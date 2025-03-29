@@ -8,13 +8,15 @@ import { colorScales } from './color_scales.js';
 import { loadVectorLayer } from './vector_layers.js';
 import { initializeSplitMap } from './split-map.js';
 import { CombinedBasemapControl } from './combined-basemap-control.js';
+import { createAdminLabelLayers, generateAdminLabels } from './admin_labels.js';
 
 // Global layer storage
 export const layers = {
     tiff: {},     // Store TIFF layers
     vector: {},   // Store vector layers
     point: null,  // Store point layer
-    countryOutline: null // Store country outline
+    countryOutline: null, // Store country outline
+    labels: null
 };
 
 // Initialize application
@@ -32,8 +34,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load Mali outline by default
     await loadCountryOutline(mainMap);
     
-    // Create country outline toggle button
-    createOutlineToggle(mainMap);
+    // Initialize admin label layers with country outline
+    layers.labels = createAdminLabelLayers(mainMap, layers.vector, layers.countryOutline);
     
     // Setup layer controls
     setupLayerControls(mainMap, layers, colorScales, updateLegend, hideLegend);
@@ -54,10 +56,17 @@ function setupMainMap(mapId) {
         attributionControl: true
     }).setView([17.5707, -3.9962], 6);
     
+    // Add scale bar
+    L.control.scale({
+        position: 'bottomleft',
+        metric: true,
+        imperial: false,
+        maxWidth: 200
+    }).addTo(map);
+    
     addDefaultBasemap(map);
     return map;
 }
-
 /**
  * Set up the comparison map with basemap only
  */
@@ -107,7 +116,7 @@ function createOutlineToggle(map) {
             const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control outline-toggle-control');
             const button = L.DomUtil.create('a', 'outline-toggle-button', container);
             button.href = '#';
-            button.innerHTML = '🗺️ Toggle Outline';
+            button.innerHTML = '🗺️ Outline';
             button.classList.add('active');
             
             L.DomEvent.on(button, 'click', function(e) {

@@ -5,9 +5,18 @@
  */
 export const colorScales = {
     // Cell tower density color scale
+
+    ndvi: {
+        ranges: [0, 1250, 2500, 5000, 10000],
+        colors: ['#e0f5e0', '#a3d9a3','#5cb85c', '#2d882d', '#004d00'], // Magma //'rgba(0,0,0,0)',
+    },
+    nightlightintensity: {
+        ranges: [0, 2, 5, 10, 25],
+        colors: ['#000004', '#51127c', '#b73779', '#fb8761', '#fcfdbf'], // Magma
+    },
     cellTowerDensity: {
         ranges: [0, 2, 5, 10, 25],
-        colors: ['#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'], // Blue to Red
+        colors: ['#000004', '#51127c', '#b73779', '#fb8761', '#fcfdbf'], // Magma
     },
     
     // Population density color scale
@@ -18,14 +27,14 @@ export const colorScales = {
     
     // Social vulnerability color scale
     socialVulnerability: {
-        ranges: [0, 0.2, 0.4, 0.6, 0.7, 0.8],
-        colors: ['#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'], // Blue to Red
+        ranges: [0, 0.302, 0.542, 0.68, 0.9, 1],
+        colors: ['#2b83ba', '#abdda4', '#ffffbf', '#fdae61', '#d7191c'], // Blue to Red, Custom color ranges from admin
     },
     
     // Relative wealth color scale
     relativeWealth: {
-        ranges: [0.1, 2, 4, 6, 8, 10],
-        colors: ['#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'], // Blue to Red
+        ranges: [0, 2, 4, 6, 8, 10],
+        colors: ['#000004', '#51127c', '#b73779', '#fb8761', '#fcfdbf'], // Magma
     }
 };
 

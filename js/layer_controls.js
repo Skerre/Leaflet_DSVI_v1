@@ -8,6 +8,7 @@ import { loadVectorLayer,
     populateAttributeSelector } from './vector_layers.js';
 import { loadTiff } from './zoom-adaptive-tiff-loader.js';
 import { setupColorRampSelector, getColorRamp } from './color_ramp_selector.js';
+import { generateAdminLabels } from './admin_labels.js';
 
 // Layer configuration - maps checkbox IDs to loading functions and parameters
 const layerConfig = {
@@ -96,11 +97,11 @@ const layerConfig = {
     },
     tiffLayer5: {
         type: 'raster',
-        url: 'data/conflict4.tif',
+        url: 'data/ntl2.tif',
         opacityControl: 'tiffOpacity5',
         opacityDisplay: 'tiffOpacityValue5',
-        colorScale: 'relativeWealth',
-        legendTitle: 'Conflict Event Heatmap',
+        colorScale: 'nightlightintensity',
+        legendTitle: 'Nightlights',
         legendDescription: 'Gradient representing number of conflict events in the past 20 years.',
         legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
     },
@@ -109,14 +110,14 @@ const layerConfig = {
         url: 'data/ndvi2.tif',
         opacityControl: 'tiffOpacity6',
         opacityDisplay: 'tiffOpacityValue6',
-        colorScale: 'relativeWealth',
+        colorScale: 'ndvi',
         legendTitle: 'Relative Wealth',
         legendDescription: 'Gradient representing Normalized Difference Vegetation Index.',
         legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
     },
     tiffLayer7: {
         type: 'raster',
-        url: 'data/ntl2.tif',
+        url: 'data/conflict4.tif',
         opacityControl: 'tiffOpacity7',
         opacityDisplay: 'tiffOpacityValue7',
         colorScale: 'relativeWealth',
@@ -261,6 +262,15 @@ function setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideL
                 // If vector layer, populate attribute selector
                 if (config.type === 'vector' && config.attributeSelector && layers.vector[layerId]) {
                     populateAttributeSelector(layers.vector[layerId], config.attributeSelector);
+                    
+                    // Add this block to generate labels for admin boundaries
+                    if (layerId === 'geojsonLayer' && layers.labels) {
+                        // This is the admin level 1 layer
+                        generateAdminLabels(layers.vector[layerId], 'adm1', layers.labels.adm1);
+                    } else if (layerId === 'geojsonLayer2' && layers.labels) {
+                        // This is the admin level 2 layer
+                        generateAdminLabels(layers.vector[layerId], 'adm2', layers.labels.adm2);
+                    }
                 }
             } catch (error) {
                 console.error(`Error loading layer ${layerId}:`, error);

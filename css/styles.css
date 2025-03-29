@@ -274,7 +274,7 @@
     background-color: white;
     text-decoration: none;
     white-space: nowrap; /* Prevent wrapping */
-    min-width: 120px; /* Adjust width as needed */
+    min-width: 70px; /* Adjust width as needed */
 }
 
 .outline-toggle-button:hover {
@@ -419,4 +419,90 @@
     image-rendering: auto;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+}
+
+/* Admin boundary label styles */
+.admin-label {
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 3px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+.adm1-label {
+    color: #000;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.adm2-label {
+    color: #333;
+    font-size: 12px;
+}
+
+/* Adapt the label size based on zoom level */
+@media (min-width: 768px) {
+    .admin-label {
+        font-size: 14px;
+    }
+    
+    .adm1-label {
+        font-size: 12px;
+    }
+    
+    .adm2-label {
+        font-size: 10px;
+    }
+}
+
+/* Combined control panel styles */
+.combined-map-control {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    padding: 8px;
+    min-width: 130px;
+}
+
+.combined-control-button {
+    padding: 6px 10px;
+    background-color: #f8f8f8;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s;
+    text-align: left;
+    margin-bottom: 5px;
+}
+
+.combined-control-button:hover {
+    background-color: #e6e6e6;
+}
+
+.combined-control-button.active {
+    background-color: #d4edda !important;
+    border-color: #c3e6cb !important;
+    font-weight: bold;
+}
+
+/* Original label toggle control styles - kept for backward compatibility */
+.label-toggle-control {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    padding: 8px;
+    min-width: 100px;
+}
+
+.label-toggle-button.active {
+    background-color: #d4edda !important;
+    border-color: #c3e6cb !important;
+    font-weight: bold;
 }
