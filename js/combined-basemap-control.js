@@ -23,8 +23,8 @@ export const CombinedBasemapControl = L.Control.extend({
         const container = L.DomUtil.create('div', 'leaflet-control-layers leaflet-bar basemap-control combined-basemap-control');
         
         // Create title
-        const title = L.DomUtil.create('h4', '', container);
-        title.textContent = 'Map Basemaps';
+        // const title = L.DomUtil.create('h4', '', container);
+        // title.textContent = 'Map Basemaps';
         
         // Create left map selector
         this._createMapSelector(

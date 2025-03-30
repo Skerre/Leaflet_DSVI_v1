@@ -50,7 +50,7 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
             
             // Map Features Section
             const featuresTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
-            featuresTitle.innerHTML = 'Map Features';
+            featuresTitle.innerHTML = 'Map Controls';
             
             // Add outline toggle button
             const outlineButton = createButton('🗺️ Outline', contentContainer);
@@ -63,11 +63,11 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
             const adm2Button = createButton('ADM2 Labels', contentContainer);
             
             // Separator
-            const separator = L.DomUtil.create('div', 'combined-control-separator', contentContainer);
+            // const separator = L.DomUtil.create('div', 'combined-control-separator', contentContainer);
             
             // Map Basemaps Section
-            const basemapsTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
-            basemapsTitle.innerHTML = 'Map Basemaps';
+            // const basemapsTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
+            // basemapsTitle.innerHTML = 'Map Basemaps';
             
             // Left map selection
             const leftMapLabel = L.DomUtil.create('label', 'basemap-label', contentContainer);
@@ -136,6 +136,7 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
     });
     
     map.addControl(new CombinedControl());
+
 }
 
 /**

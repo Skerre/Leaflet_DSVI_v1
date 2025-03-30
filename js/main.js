@@ -1,10 +1,10 @@
 // main.js - Core application logic
 
 // Import modules
-import { addDefaultBasemap, basemaps } from './basemaps.js';
-import { setupLayerControls } from './layer_controls.js';
+import { addDefaultBasemap, basemaps } from './basemaps.js'; 
+import { setupLayerControls } from './layer_controls.js'; 
 import { initializeLegend, updateLegend, hideLegend } from './legend.js';
-import { colorScales } from './color_scales.js';
+import { colorScales } from './color_scales.js'; 
 import { loadVectorLayer } from './vector_layers.js';
 import { initializeSplitMap } from './split-map.js';
 import { createAdminLabelLayers, generateAdminLabels } from './admin_labels.js';
@@ -51,7 +51,9 @@ function setupMainMap(mapId) {
         zoomControl: true,  // We'll remove this in createAdminLabelLayers
         attributionControl: true
     }).setView([17.5707, -3.9962], 6);
-    
+    map.attributionControl.setPrefix(' The boundaries and names shown and the designations used on this map do not imply official endorsement or acceptance by the United Nations.')
+    map.attributionControl.setPosition('bottomleft')
+    addDefaultBasemap(map);
     // Add scale bar
     L.control.scale({
         position: 'bottomleft',
@@ -59,8 +61,7 @@ function setupMainMap(mapId) {
         imperial: false,
         maxWidth: 200
     }).addTo(map);
-    
-    addDefaultBasemap(map);
+
     return map;
 }
 
@@ -74,6 +75,7 @@ function setupCompareMap(mapId) {
     }).setView([17.5707, -3.9962], 6);
     
     basemaps.esriWorldImagery.addTo(map);
+    
     return map;
 }
 
