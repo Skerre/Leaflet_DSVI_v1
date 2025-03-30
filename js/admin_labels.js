@@ -42,15 +42,15 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
             
             // Add toggle button for minimizing/maximizing the panel
             const toggleButton = L.DomUtil.create('div', 'combined-control-toggle', container);
-            toggleButton.innerHTML = '▼';
+            toggleButton.innerHTML = 'Map Controls ▼';
             toggleButton.title = 'Toggle Map Controls';
             
             // Create content container that can be hidden/shown
             const contentContainer = L.DomUtil.create('div', 'combined-control-content', container);
             
             // Map Features Section
-            const featuresTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
-            featuresTitle.innerHTML = 'Map Controls';
+            // const featuresTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
+            // featuresTitle.innerHTML = 'Map Controls';
             
             // Add outline toggle button
             const outlineButton = createButton('🗺️ Outline', contentContainer);
@@ -124,7 +124,7 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
                 L.DomEvent.stopPropagation(e);
                 
                 const isMinimized = container.classList.toggle('minimized');
-                this.innerHTML = isMinimized ? '▲' : '▼';
+                this.innerHTML = isMinimized ? 'Map Controls ▲' : 'Map Controls ▼';
             });
             
             // Prevent map clicks from propagating through the control
