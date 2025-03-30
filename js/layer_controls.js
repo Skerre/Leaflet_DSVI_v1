@@ -45,7 +45,7 @@ const layerConfig = {
     },
     pointLayer: {
         type: 'point',
-        url: 'data/sample-points_2.geojson',
+        url: 'data/DHS_stats.geojson',
         opacityControl: 'pointOpacity',
         opacityDisplay: 'pointOpacityValue',
         selectorId: 'pointValueSelector',
@@ -57,7 +57,7 @@ const layerConfig = {
     // Raster layers
     tiffLayer1: {
         type: 'raster',
-        url: 'data/celltower_density_epsg4326_lowres.tif',
+        url: 'data/celltower.tif',
         opacityControl: 'tiffOpacity1',
         opacityDisplay: 'tiffOpacityValue1',
         colorScale: 'cellTowerDensity',
@@ -67,7 +67,7 @@ const layerConfig = {
     },
     tiffLayer2: {
         type: 'raster',
-        url: 'data/pop_epsg4326_lowres.tif',
+        url: 'data/pop.tif',
         opacityControl: 'tiffOpacity2',
         opacityDisplay: 'tiffOpacityValue2',
         colorScale: 'populationDensity',
@@ -77,7 +77,7 @@ const layerConfig = {
     },
     tiffLayer3: {
         type: 'raster',
-        url: 'data/SV_May23_HR_IR_MIS_2021_agg_epsg4326_lowres.tif',
+        url: 'data/SV_May23_HR_IR_MIS_2021_agg.tif',
         opacityControl: 'tiffOpacity3',
         opacityDisplay: 'tiffOpacityValue3',
         colorScale: 'socialVulnerability',
@@ -87,7 +87,7 @@ const layerConfig = {
     },
     tiffLayer4: {
         type: 'raster',
-        url: 'data/rwi_density_epsg4326_lowres.tif',
+        url: 'data/rwi.tif',
         opacityControl: 'tiffOpacity4',
         opacityDisplay: 'tiffOpacityValue4',
         colorScale: 'relativeWealth',
@@ -97,32 +97,32 @@ const layerConfig = {
     },
     tiffLayer5: {
         type: 'raster',
-        url: 'data/ntl2.tif',
+        url: 'data/ntl.tif',
         opacityControl: 'tiffOpacity5',
         opacityDisplay: 'tiffOpacityValue5',
         colorScale: 'nightlightintensity',
         legendTitle: 'Nightlights',
-        legendDescription: 'Gradient representing number of conflict events in the past 20 years.',
+        legendDescription: 'Gradient representing nightlight intensity.',
         legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
     },
     tiffLayer6: {
         type: 'raster',
-        url: 'data/ndvi2.tif',
+        url: 'data/ndvi.tif',
         opacityControl: 'tiffOpacity6',
         opacityDisplay: 'tiffOpacityValue6',
         colorScale: 'ndvi',
-        legendTitle: 'Relative Wealth',
+        legendTitle: 'Vegetation Health',
         legendDescription: 'Gradient representing Normalized Difference Vegetation Index.',
         legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
     },
     tiffLayer7: {
         type: 'raster',
-        url: 'data/conflict4.tif',
+        url: 'data/conflict.tif',
         opacityControl: 'tiffOpacity7',
         opacityDisplay: 'tiffOpacityValue7',
-        colorScale: 'relativeWealth',
-        legendTitle: 'Relative Wealth',
-        legendDescription: 'Gradient representing nightlight intensity.',
+        colorScale: 'conflict',
+        legendTitle: 'Conflicts (ACLED)',
+        legendDescription: 'Gradient representing number of conflict events in the past 15 years.',
         legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
     }
 };

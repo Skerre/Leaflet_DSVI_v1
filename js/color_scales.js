@@ -18,7 +18,10 @@ export const colorScales = {
         ranges: [0, 2, 5, 10, 25],
         colors: ['#000004', '#51127c', '#b73779', '#fb8761', '#fcfdbf'], // Magma
     },
-    
+    conflict: {
+        ranges: [0, 2, 5, 10, 25],
+        colors: ['#fee0d2', '#fc9272', '#ef3b2c', '#cb181d', '#67000d'], // white to red
+    },
     // Population density color scale
     populationDensity: {
         ranges: [0, 25, 50, 75, 100],
