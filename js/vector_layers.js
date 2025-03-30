@@ -423,7 +423,9 @@ export function populateDropdown(data, selectorId) {
 }
 
 /**
- * Populate attribute selector with fields from a layer
+ * Populate attribute selector with fields from a layer, excluding NAME_1 and NAME_2
+ * @param {Object} layer - Vector layer with GeoJSON data
+ * @param {string} selectorId - ID of the select element to populate
  */
 export function populateAttributeSelector(layer, selectorId) {
     if (!layer?.layerData?.propertyFields) return;
@@ -440,11 +442,16 @@ export function populateAttributeSelector(layer, selectorId) {
     defaultOption.textContent = 'Select attribute...';
     selector.appendChild(defaultOption);
     
-    // Add property options
-    layer.layerData.propertyFields.forEach(prop => {
-        const option = document.createElement('option');
-        option.value = prop;
-        option.textContent = prop;
-        selector.appendChild(option);
-    });
+    // Define fields to exclude
+    const excludeFields = ['fid','GID_0','GID_1', 'GID_2','NAME_1', 'NAME_2', 'Cercle/District'];
+    
+    // Add property options, excluding the specified fields
+    layer.layerData.propertyFields
+        .filter(prop => !excludeFields.includes(prop))
+        .forEach(prop => {
+            const option = document.createElement('option');
+            option.value = prop;
+            option.textContent = prop;
+            selector.appendChild(option);
+        });
 }

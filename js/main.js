@@ -7,7 +7,6 @@ import { initializeLegend, updateLegend, hideLegend } from './legend.js';
 import { colorScales } from './color_scales.js';
 import { loadVectorLayer } from './vector_layers.js';
 import { initializeSplitMap } from './split-map.js';
-import { CombinedBasemapControl } from './combined-basemap-control.js';
 import { createAdminLabelLayers, generateAdminLabels } from './admin_labels.js';
 
 // Global layer storage
@@ -16,7 +15,7 @@ export const layers = {
     vector: {},   // Store vector layers
     point: null,  // Store point layer
     countryOutline: null, // Store country outline
-    labels: null
+    labels: null  // Store label layers
 };
 
 // Initialize application
@@ -34,17 +33,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load Mali outline by default
     await loadCountryOutline(mainMap);
     
-    // Initialize admin label layers with country outline
-    layers.labels = createAdminLabelLayers(mainMap, layers.vector, layers.countryOutline);
+    // Initialize admin label layers
+    layers.labels = createAdminLabelLayers(mainMap, layers.vector, layers.countryOutline, compareMap);
     
     // Setup layer controls
     setupLayerControls(mainMap, layers, colorScales, updateLegend, hideLegend);
     
     // Initialize opacity values display
     setupOpacityDisplays();
-    
-    // Add combined basemap control
-    mainMap.addControl(new CombinedBasemapControl(mainMap, compareMap));
 });
 
 /**
@@ -52,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async function() {
  */
 function setupMainMap(mapId) {
     const map = L.map(mapId, {
-        zoomControl: true,
+        zoomControl: true,  // We'll remove this in createAdminLabelLayers
         attributionControl: true
     }).setView([17.5707, -3.9962], 6);
     
@@ -67,6 +63,7 @@ function setupMainMap(mapId) {
     addDefaultBasemap(map);
     return map;
 }
+
 /**
  * Set up the comparison map with basemap only
  */
@@ -102,48 +99,6 @@ async function loadCountryOutline(map) {
         layers.countryOutline = outlineLayer;
     } catch (error) {
         console.error("Failed to load country outline:", error);
-    }
-}
-
-/**
- * Create toggle button for country outline
- */
-function createOutlineToggle(map) {
-    const OutlineControl = L.Control.extend({
-        options: { position: 'topleft' },
-        
-        onAdd: function() {
-            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control outline-toggle-control');
-            const button = L.DomUtil.create('a', 'outline-toggle-button', container);
-            button.href = '#';
-            button.innerHTML = '🗺️ Outline';
-            button.classList.add('active');
-            
-            L.DomEvent.on(button, 'click', function(e) {
-                L.DomEvent.preventDefault(e);
-                toggleCountryOutline(button, map);
-            });
-            
-            L.DomEvent.disableClickPropagation(container);
-            return container;
-        }
-    });
-    
-    map.addControl(new OutlineControl());
-}
-
-/**
- * Toggle country outline visibility
- */
-function toggleCountryOutline(button, map) {
-    if (!layers.countryOutline) return;
-    
-    if (map.hasLayer(layers.countryOutline)) {
-        map.removeLayer(layers.countryOutline);
-        button.classList.remove('active');
-    } else {
-        map.addLayer(layers.countryOutline);
-        button.classList.add('active');
     }
 }
 

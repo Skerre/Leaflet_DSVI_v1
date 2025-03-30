@@ -295,22 +295,23 @@
 }
 
 .combined-basemap-control {
-    width: 200px;
+    width: 100px;
 }
 
 .basemap-label {
     display: block;
-    margin-bottom: 5px;
+    margin: 5px 0;
     font-size: 14px;
-    color: #ffffff;
+    color: #333;
 }
-
 .basemap-select {
     width: 100%;
     padding: 5px;
     border-radius: 4px;
-    border: 1px solid #ced4da;
+    border: 1px solid #ccc;
     font-size: 14px;
+    margin-bottom: 10px;
+    background-color: #f8f8f8;
 }
 
 .basemap-select-group {
@@ -431,19 +432,19 @@
     border: 1px solid rgba(0, 0, 0, 0.3);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     white-space: nowrap;
-    font-size: 12px;
+    font-size: 10px;
     pointer-events: none;
 }
 
 .adm1-label {
     color: #000;
     text-transform: uppercase;
-    font-size: 14px;
+    font-size: 10px;
 }
 
 .adm2-label {
     color: #333;
-    font-size: 12px;
+    font-size: 8px;
 }
 
 /* Adapt the label size based on zoom level */
@@ -466,8 +467,49 @@
     background-color: white;
     border-radius: 4px;
     box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    padding: 0;
+    width: 200px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+.combined-control-toggle {
+    background-color: #6c757d;
+    color: white;
+    padding: 5px 10px;
+    font-size: 14px;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+    border-radius: 4px 4px 0 0;
+}
+
+.combined-control-toggle:hover {
+    background-color: #5a6268;
+}
+
+.combined-control-content {
     padding: 8px;
-    min-width: 130px;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.combined-map-control.minimized .combined-control-content {
+    max-height: 0;
+    padding: 0 8px;
+    overflow: hidden;
+}
+.combined-control-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ccc;
+}
+
+.combined-control-separator {
+    height: 1px;
+    background-color: #ccc;
+    margin: 10px 0;
 }
 
 .combined-control-button {
@@ -485,6 +527,7 @@
 .combined-control-button:hover {
     background-color: #e6e6e6;
 }
+
 
 .combined-control-button.active {
     background-color: #d4edda !important;
