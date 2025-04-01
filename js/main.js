@@ -53,6 +53,14 @@ function setupMainMap(mapId) {
     }).setView([17.5707, -3.9962], 6);
     map.attributionControl.setPrefix(' The boundaries and names shown and the designations used on this map do not imply official endorsement or acceptance by the United Nations.')
     map.attributionControl.setPosition('bottomleft')
+    
+    console.log('Main Map CRS Information:', {
+        mapId: mapId,
+        crs: map.options.crs,
+        crsCode: map.options.crs.code,
+        projection: map.options.crs.projection ? map.options.crs.projection.toString() : 'No projection info'
+    });
+    
     addDefaultBasemap(map);
     // Add scale bar
     L.control.scale({

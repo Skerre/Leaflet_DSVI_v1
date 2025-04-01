@@ -38,6 +38,11 @@ export const colorScales = {
     relativeWealth: {
         ranges: [0, 2, 4, 6, 8, 10],
         colors: ['#000004', '#51127c', '#b73779', '#fb8761', '#fcfdbf'], // Magma
+    },
+     // Temp
+     temp: {
+        ranges: [15, 20, 25, 30, 35, 40],
+        colors: ['#2b83ba', '#abdda4', '#ffffbf', '#fdae61', '#d7191c'], // Blue to Red, Custom color ranges from admin
     }
 };
 

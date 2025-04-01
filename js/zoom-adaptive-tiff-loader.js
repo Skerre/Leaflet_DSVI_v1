@@ -67,6 +67,7 @@ function addHoverTooltip(map, rasterArray, bounds, width, height, layerName, tif
  * Load and render a GeoTIFF with zoom-dependent smoothing
  */
 export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
+    console.log("Entered LoadTiff")
     // Add validation for colorScale
     if (!colorScale || !colorScale.ranges || !colorScale.colors) {
         console.error(`Invalid colorScale for ${layerName}:`, colorScale);
@@ -78,20 +79,55 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
     const arrayBuffer = await response.arrayBuffer();
     const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
     const image = await tiff.getImage();
-
+    console.log(`TIFF loaded: ${layerName}, Size: ${image.getWidth()}x${image.getHeight()}`);
     // Get geographic information
     const tiePoint = image.getTiePoints()[0];
     const pixelScale = image.getFileDirectory().ModelPixelScale;
-
+    console.log(`TIFF geo info for ${layerName}:`, {
+        tiePoint: tiePoint,
+        pixelScale: pixelScale,
+        mapCRS: map.options.crs.code
+    });
     const minX = tiePoint.x;
     const maxY = tiePoint.y;
     const maxX = minX + pixelScale[0] * image.getWidth();
     const minY = maxY - pixelScale[1] * image.getHeight();
 
+
+    console.log(`TIFF bounds for ${layerName}:`, {
+        minX: minX, minY: minY,
+        maxX: maxX, maxY: maxY
+    });
     const bounds = L.latLngBounds([
         [minY, minX],
         [maxY, maxX]
     ]);
+    console.log(`Leaflet bounds for ${layerName}:`, {
+        southwest: bounds.getSouthWest().toString(),
+        northeast: bounds.getNorthEast().toString()
+    });
+
+    const geographicWidth = maxX - minX;  // Width in geographic coordinates
+    const geographicHeight = maxY - minY; // Height in geographic coordinates
+    const geoAspectRatio = geographicWidth / geographicHeight;
+    
+    const pixelWidth = image.getWidth();  // Width in pixels
+    const pixelHeight = image.getHeight(); // Height in pixels
+    const pixelAspectRatio = pixelWidth / pixelHeight;
+    
+    console.log(`GeoTIFF: ${layerName}`);
+    console.log(`Dimensions: ${pixelWidth}x${pixelHeight} pixels`);
+    console.log(`Geographic coverage: Width=${geographicWidth.toFixed(6)}°, Height=${geographicHeight.toFixed(6)}°`);
+    console.log(`Pixel aspect ratio: ${pixelAspectRatio.toFixed(4)}`);
+    console.log(`Geographic aspect ratio: ${geoAspectRatio.toFixed(4)}`);
+    console.log(`Aspect ratio discrepancy: ${(pixelAspectRatio/geoAspectRatio).toFixed(4)}`);
+    
+    // If the discrepancy is significant (e.g., more than 5%), log a warning
+    if (Math.abs(pixelAspectRatio/geoAspectRatio - 1) > 0.05) {
+        console.warn(`WARNING: Significant aspect ratio mismatch for ${layerName}!`);
+        console.warn(`The image may appear stretched when rendered.`);
+    }
+
 
     // Read the raster data
     const rasterData = await image.readRasters();
@@ -100,15 +136,24 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
     // Get min and max values for better color mapping
     let min = Infinity;
     let max = -Infinity;
-    
+    let validPixelCount = 0;
+
     for (let i = 0; i < rasterArray.length; i++) {
         const value = rasterArray[i];
         if (value !== -1 && value !== 0 && !isNaN(value)) {
             min = Math.min(min, value);
             max = Math.max(max, value);
+            validPixelCount++;
         }
     }
 
+    console.log(`TIFF data statistics for ${layerName}:`, {
+        min: min,
+        max: max,
+        validPixelCount: validPixelCount,
+        totalPixels: rasterArray.length,
+        validPercentage: (validPixelCount / rasterArray.length * 100).toFixed(2) + '%'
+    });
     // Create the initial image overlay
     createImageOverlay(image, rasterArray, bounds, colorScale, layerName, tiffLayers, map);
     
@@ -123,9 +168,20 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
             
             // Create a new layer with appropriate smoothing for the current zoom
             createImageOverlay(image, rasterArray, bounds, colorScale, layerName, tiffLayers, map);
+            addHoverTooltip(map, rasterArray, bounds, image.getWidth(), image.getHeight(), layerName, tiffLayers);
         }
     });
-    
+     // Log GeoTIFF projection information
+     console.log(`${layerName} - GeoTIFF Projection:`, {
+        url: url,
+        projection: image.getFileDirectory().GeoAsciiParamsTag || 'Not specified',
+        fileDirectory: image.getFileDirectory(),
+        tiePoints: image.getTiePoints(),
+        pixelScale: image.getFileDirectory().ModelPixelScale,
+        width: image.getWidth(),
+        height: image.getHeight(),
+        mapCRS: map.options.crs.code
+     });
     return tiffLayers[layerName];
 }
 
@@ -135,7 +191,7 @@ export async function loadTiff(url, layerName, tiffLayers, map, colorScale) {
 function createImageOverlay(image, rasterArray, bounds, colorScale, layerName, tiffLayers, map) {
     const width = image.getWidth();
     const height = image.getHeight();
-    
+    console.log(`Creating image overlay for ${layerName} (${width}x${height})`);
     // Check current zoom level to determine smoothing
     const currentZoom = map.getZoom();
     const shouldSmooth = currentZoom < 8; // Adjust this threshold as needed
@@ -155,12 +211,24 @@ function createImageOverlay(image, rasterArray, bounds, colorScale, layerName, t
     if (shouldSmooth) {
         ctx.imageSmoothingQuality = 'medium';
     }
-    
+    const samplePoints = [
+        0,
+        Math.floor(width * height / 4),
+        Math.floor(width * height / 2),
+        Math.floor(3 * width * height / 4),
+        width * height - 1
+    ];
+    console.log(`Sample raster values for ${layerName}:`, samplePoints.map(idx => {
+        return { index: idx, value: rasterArray[idx] };
+    }));
     // Create image data at the original size
     const imgData = ctx.createImageData(width, height);
     
     // Create a color lookup table for better performance
     const colorLookup = new Map();
+
+    let transparentCount = 0;
+    let coloredCount = 0;
     
     // Fill the image data with colors based on values
     for (let i = 0; i < rasterArray.length; i++) {
@@ -169,6 +237,7 @@ function createImageOverlay(image, rasterArray, bounds, colorScale, layerName, t
         // Handle no-data values
         if (value === -1 || value === 0 || isNaN(value)) {
             imgData.data[4 * i + 3] = 0; // Fully transparent
+            transparentCount++;
             continue;
         }
 
@@ -185,8 +254,9 @@ function createImageOverlay(image, rasterArray, bounds, colorScale, layerName, t
         imgData.data[4 * i + 1] = color[1]; // G
         imgData.data[4 * i + 2] = color[2]; // B
         imgData.data[4 * i + 3] = 255;      // A
+        coloredCount++;
     }
-    
+    console.log(`Pixel stats for ${layerName}: ${coloredCount} colored, ${transparentCount} transparent`);
     // Put the image data on the canvas
     ctx.putImageData(imgData, 0, 0);
     
@@ -200,7 +270,7 @@ function createImageOverlay(image, rasterArray, bounds, colorScale, layerName, t
         interactive: true,
         className: shouldSmooth ? 'smooth-image' : 'crisp-image'
     });
-    
+    console.log(`Leaflet imageOverlay created for ${layerName}`);
     // Add the layer to the map
     tiffLayers[layerName].addTo(map);
     
@@ -215,6 +285,7 @@ function createImageOverlay(image, rasterArray, bounds, colorScale, layerName, t
                 imgElement.style.imageRendering = '-moz-crisp-edges'; // Firefox
                 imgElement.style.imageRendering = 'crisp-edges'; // Standard
             }
+            console.log(`Rendered image dimensions for ${layerName}: ${imgElement.width}x${imgElement.height}`);
         }
     });
 }

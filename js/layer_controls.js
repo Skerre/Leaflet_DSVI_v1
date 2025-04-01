@@ -97,7 +97,7 @@ const layerConfig = {
     },
     tiffLayer5: {
         type: 'raster',
-        url: 'data/ntl.tif',
+        url: 'data/.tif',
         opacityControl: 'tiffOpacity5',
         opacityDisplay: 'tiffOpacityValue5',
         colorScale: 'nightlightintensity',
@@ -107,7 +107,7 @@ const layerConfig = {
     },
     tiffLayer6: {
         type: 'raster',
-        url: 'data/ndvi.tif',
+        url: 'data/ndvi2.tif',
         opacityControl: 'tiffOpacity6',
         opacityDisplay: 'tiffOpacityValue6',
         colorScale: 'ndvi',
@@ -121,6 +121,16 @@ const layerConfig = {
         opacityControl: 'tiffOpacity7',
         opacityDisplay: 'tiffOpacityValue7',
         colorScale: 'conflict',
+        legendTitle: 'Conflicts (ACLED)',
+        legendDescription: 'Gradient representing number of conflict events in the past 15 years.',
+        legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
+    },
+    tiffLayer8: {
+        type: 'raster',
+        url: 'data/temp_compr.tif',
+        opacityControl: 'tiffOpacity8',
+        opacityDisplay: 'tiffOpacityValue8',
+        colorScale: 'temp',
         legendTitle: 'Conflicts (ACLED)',
         legendDescription: 'Gradient representing number of conflict events in the past 15 years.',
         legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
@@ -344,6 +354,10 @@ async function loadLayer(layerId, map, layers, colorScales, updateLegend) {
             
             if (!layers.tiff[layerId]) {
                 await loadTiff(config.url, layerId, layers.tiff, map, selectedColorScale);
+                console.log(`Raster Layer ${layerId} loaded:`, {
+                    url: config.url,
+                    bounds: layers.tiff[layerId] ? layers.tiff[layerId].getBounds() : 'N/A'
+                });
             } else {
                 layers.tiff[layerId].addTo(map);
             }
