@@ -43,6 +43,21 @@ const layerConfig = {
         colorRampSelector: 'vectorColorRamp2',
         colorRampPreview: 'vectorColorPreview2'
     },
+    streetNetworkLayer: {
+        type: 'vector',
+        url: 'data/street_subset.geojson', // Update with your actual file path
+        style: {
+            color: "#3388ff",
+            weight: 0.5,
+            opacity: 1,
+            fillOpacity: 0
+        },
+        opacityControl: 'streetNetworkOpacity',
+        opacityDisplay: 'streetNetworkOpacityValue',
+        attributeSelector: 'streetNetworkAttribute',
+        colorRampSelector: 'streetNetworkColorRamp',
+        colorRampPreview: 'streetNetworkColorPreview'
+    },
     pointLayer: {
         type: 'point',
         url: 'data/DHS_stats.geojson',

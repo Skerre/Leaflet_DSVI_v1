@@ -119,6 +119,27 @@
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
+        /* Figure styles */
+        .figure-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .figure-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        
+        .figure-caption {
+            font-style: italic;
+            color: #6c757d;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -145,24 +166,60 @@
                 This page provides detailed information about the Development and Social Vulnerability Index (DSVI) Data Visualization Tool, including methodology, data sources, and guidance on interpretation.
             </p>
         </div>
-        
+        <div class="content-section">
+            <h2>How to Use the Tool</h2>
+            <div class="two-column">
+                <div class="column">
+                    <h3>Basic Usage</h3>
+                    <ol>
+                        <li><strong>Select a Layer:</strong> Use the sidebar to toggle different data layers on and off</li>
+                        <li><strong>Adjust Opacity:</strong> Use the slider controls to adjust the transparency of each layer</li>
+                        <li><strong>View Data:</strong> Click on areas of the map to view detailed information about that location</li>
+                        <li><strong>Change Basemap:</strong> Use the basemap selector in the top right to change the background map</li>
+                    </ol>
+                </div>
+                <div class="column">
+                    <h3>Advanced Features</h3>
+                    <ol>
+                        <li><strong>Compare Indicators:</strong> Toggle multiple layers to compare different aspects of vulnerability</li>
+                        <li><strong>Adjust Colors:</strong> For vector layers, select different attributes and color schemes</li>
+                        <li><strong>Export Maps:</strong> Use the screenshot function to export your map view for reports</li>
+                        <li><strong>View Legend:</strong> Refer to the legend to understand the classification of values</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
         <div class="content-section">
             <h2>Methodology</h2>
             <p>
-                The DSVI integrates multiple indicators of development and social vulnerability to create a comprehensive assessment tool. Our methodology follows these key steps:
+                The DSVI integrates multiple indicators of development and social vulnerability to create a comprehensive assessment tool. DSVI combines Geographic Information Systems (GIS), Artificial Intelligence (AI), and Machine Learning (ML) technologies for building interactive high-resolution maps visualizing vulnerabilities. Our methodology follows these key steps:
             </p>
             
             <ol>
-                <li><strong>Data Collection:</strong> We gather data from multiple reliable sources, including national surveys, satellite imagery, and international databases.</li>
-                <li><strong>Data Normalization:</strong> All indicators are normalized to ensure comparability across different measurement scales.</li>
-                <li><strong>Index Construction:</strong> We use principal component analysis and other statistical methods to combine indicators into meaningful dimensions.</li>
+                <li><strong>Data Collection:</strong> We gather data from multiple reliable sources, including Demographic and Health Surveys (DHS), satellite imagery, and international databases.</li>
+                <li><strong>Data Preprocessing:</strong> All indicators are normalized and prepared to ensure comparability across different measurement scales.</li>
+                <li><strong>Social Vulnerability Calculation:</strong> Using Principal Component Analysis (PCA) and expert opinion to calculate vulnerability scores for survey locations.</li>
+                <li><strong>Machine Learning Modeling:</strong> We use multiple algorithms to predict social vulnerability for areas without survey coverage, creating high-resolution vulnerability maps.</li>
                 <li><strong>Validation:</strong> The resulting indices are validated against ground truth data and expert assessments.</li>
                 <li><strong>Visualization:</strong> We develop interactive maps and dashboards to make the data accessible to a wide range of users.</li>
             </ol>
             
-            <div class="methodology-diagram">
-                <img src="../assets/methodology-diagram.png" alt="DSVI Methodology Diagram">
+            <div class="figure-container">
+                <img src="../assets/Workflow_new.png" alt="DSVI Workflow Diagram">
+                <p class="figure-caption">Figure 1: DSVI Workflow from Business Understanding to Product Deployment</p>
             </div>
+
+            <p>
+                The calculation of Social Vulnerability follows a detailed process that involves:
+            </p>
+            <ol>
+                <li>Collection and preprocessing of survey data</li>
+                <li>Long listing of potentially relevant vulnerability indicators</li>
+                <li>Short listing of indicators with feedback from local experts</li>
+                <li>Principal component analysis on remaining indicators</li>
+                <li>Discussion on indicator influence and components' meaning with experts</li>
+                <li>Summation of components into single vulnerability score</li>
+            </ol>
         </div>
         
         <div class="content-section">
@@ -172,18 +229,18 @@
             </p>
             
             <div class="data-source">
-                <h3>Demographic and Health Surveys (DHS)</h3>
-                <p>Nationally representative household surveys that provide data on population, health, and nutrition. These surveys are conducted approximately every 5 years in participating countries.</p>
+                <h3>Survey Data</h3>
+                <p>DSVI primarily uses Demographic and Health Survey (DHS) data with geolocations to calculate social vulnerability. For Mali, we used the DHS 2018 (Standard) and 2021 Malaria Indicator Survey (MIS) nationwide survey data. These surveys contain hundreds of variables covering dimensions of income, employment status, access to infrastructure, health, violence, gender equality, ethnic group, age, and more.</p>
             </div>
             
             <div class="data-source">
-                <h3>Cell Tower Density</h3>
-                <p>Cell tower location data is used as a proxy for connectivity and communications infrastructure. This data is sourced from telecommunications regulatory authorities and OpenCellID.</p>
+                <h3>Spatial Data</h3>
+                <p>We collect and create high-quality spatial data to find connections between geographical factors and calculated social vulnerability scores. These include socioeconomic variables (nightlight intensity, distance to healthcare, etc.) and biophysical variables (elevation, vegetation, etc.).</p>
             </div>
             
             <div class="data-source">
-                <h3>Relative Wealth Index (RWI)</h3>
-                <p>The RWI combines satellite imagery, survey data, and machine learning to estimate asset wealth at high spatial resolution. This data comes from the Chi Lab at Stanford University.</p>
+                <h3>Expert Opinion</h3>
+                <p>Social vulnerability is a contextual metric that requires expert input for weighting. For every country studied, domain knowledge of the specific circumstances must be considered. Expert input helps interpret the influence of humanitarian indicators and validate results.</p>
             </div>
             
             <div class="data-source">
@@ -193,44 +250,206 @@
         </div>
         
         <div class="content-section">
-            <h2>Key Indicators</h2>
+            <h2>Geodatasets Used</h2>
             <p>
-                The DSVI incorporates multiple indicators across several dimensions of development and vulnerability:
+                The following geodatasets were used for predicting social vulnerability in Mali:
             </p>
             
             <table>
                 <thead>
                     <tr>
-                        <th>Dimension</th>
-                        <th>Indicators</th>
-                        <th>Source</th>
+                        <th>Group</th>
+                        <th>Variable</th>
+                        <th>Type</th>
+                        <th>Year</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Economic</td>
-                        <td>Relative wealth index, poverty rate, employment rate</td>
-                        <td>DHS, RWI</td>
+                        <td>Socioeconomic</td>
+                        <td>Nightlight Intensity</td>
+                        <td>Raw data</td>
+                        <td>2024</td>
                     </tr>
                     <tr>
-                        <td>Health</td>
-                        <td>Child mortality, vaccination rate, access to healthcare</td>
-                        <td>DHS, UNICEF</td>
+                        <td>Socioeconomic</td>
+                        <td>Proximity to Healthcare</td>
+                        <td>Derived</td>
+                        <td>2024</td>
                     </tr>
                     <tr>
-                        <td>Education</td>
-                        <td>Literacy rate, years of schooling, school attendance</td>
-                        <td>DHS, UNESCO</td>
+                        <td>Socioeconomic</td>
+                        <td>Proximity to Education</td>
+                        <td>Derived</td>
+                        <td>2024</td>
                     </tr>
                     <tr>
-                        <td>Infrastructure</td>
-                        <td>Cell tower density, road density, electricity access</td>
-                        <td>OpenCellID, OSM, Lighting Index</td>
+                        <td>Socioeconomic</td>
+                        <td>Proximity to Main Road</td>
+                        <td>Derived</td>
+                        <td>2024</td>
                     </tr>
                     <tr>
-                        <td>Environment</td>
-                        <td>Natural hazard exposure, land degradation, climate risks</td>
-                        <td>UNEP, WorldClim</td>
+                        <td>Socioeconomic</td>
+                        <td>Population Density</td>
+                        <td>Raw data</td>
+                        <td>2024</td>
+                    </tr>
+                    <tr>
+                        <td>Socioeconomic</td>
+                        <td>Conflicts</td>
+                        <td>Raw data</td>
+                        <td>2012-2024</td>
+                    </tr>
+                    <tr>
+                        <td>Socioeconomic</td>
+                        <td>Relative Wealth</td>
+                        <td>Derived</td>
+                        <td>2021</td>
+                    </tr>
+                    <tr>
+                        <td>Socioeconomic</td>
+                        <td>Cell Tower Density</td>
+                        <td>Derived</td>
+                        <td>2024</td>
+                    </tr>
+                    <tr>
+                        <td>Bio-physical</td>
+                        <td>Temperature</td>
+                        <td>Raw data</td>
+                        <td>2023</td>
+                    </tr>
+                    <tr>
+                        <td>Bio-physical</td>
+                        <td>Precipitation</td>
+                        <td>Raw data</td>
+                        <td>2023</td>
+                    </tr>
+                    <tr>
+                        <td>Bio-physical</td>
+                        <td>Vegetation Indices</td>
+                        <td>Raw data</td>
+                        <td>2024</td>
+                    </tr>
+                    <tr>
+                        <td>Bio-physical</td>
+                        <td>Elevation</td>
+                        <td>Raw data</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="figure-container">
+                <img src="../assets/SV_masked.png" alt="Social Vulnerability Map of populated areas">
+                <p class="figure-caption">Figure 2: Social Vulnerability Map of populated areas in Mali</p>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h2>Key Indicators</h2>
+            <p>
+                The DSVI incorporates multiple indicators across several dimensions of development and vulnerability. The following indicator groups from DHS surveys were particularly important:
+            </p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Social</th>
+                        <th>Health</th>
+                        <th>Economy</th>
+                        <th>Infrastructure</th>
+                        <th>Malaria</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Age</td>
+                        <td>Health insurance</td>
+                        <td>Working environment</td>
+                        <td>Travel times to water/health</td>
+                        <td>Mosquito nets and their use</td>
+                    </tr>
+                    <tr>
+                        <td>Gender</td>
+                        <td>Tuberculosis</td>
+                        <td>Unemployment</td>
+                        <td>Internet access</td>
+                        <td>Treatment against malaria</td>
+                    </tr>
+                    <tr>
+                        <td>Ethnicity</td>
+                        <td>Vaccinations</td>
+                        <td>Child labour</td>
+                        <td>Building materials</td>
+                        <td>Diagnostic blood tests</td>
+                    </tr>
+                    <tr>
+                        <td>Migration</td>
+                        <td>Disability</td>
+                        <td>Access to banking</td>
+                        <td>Transportation</td>
+                        <td>Awareness of Malaria and methods to reduce risk</td>
+                    </tr>
+                    <tr>
+                        <td>Household size</td>
+                        <td>Malaria STD's</td>
+                        <td></td>
+                        <td>Urban/Rural</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Literacy</td>
+                        <td>Health insurance</td>
+                        <td></td>
+                        <td>Cooking fuel</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p>
+                According to our analysis, the most important drivers of vulnerability in Mali were:
+            </p>
+            <ul>
+                <li><strong>From PCA Analysis:</strong> Literacy, Access to electricity, Education in single years, Educational attainment, Highest educational level, and Use of internet</li>
+                <li><strong>From Machine Learning Models:</strong> Nightlight intensity, Relative wealth, Distance to education, Celltower density, Distance to financial services, Conflicts, Population density, and Distance to healthcare</li>
+            </ul>
+        </div>
+        
+        <div class="content-section">
+            <h2>Vulnerability Classification</h2>
+            <p>
+                Vulnerability scores are classified into five categories for easier interpretation:
+            </p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vulnerability Score</th>
+                        <th>Vulnerability Class</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0 – 0.2</td>
+                        <td>Very Low</td>
+                    </tr>
+                    <tr>
+                        <td>0.2 – 0.4</td>
+                        <td>Low</td>
+                    </tr>
+                    <tr>
+                        <td>0.4 – 0.6</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td>0.6 – 0.8</td>
+                        <td>High</td>
+                    </tr>
+                    <tr>
+                        <td>0.8 – 1.0</td>
+                        <td>Very High</td>
                     </tr>
                 </tbody>
             </table>
@@ -268,29 +487,6 @@
             </div>
         </div>
         
-        <div class="content-section">
-            <h2>How to Use the Tool</h2>
-            <div class="two-column">
-                <div class="column">
-                    <h3>Basic Usage</h3>
-                    <ol>
-                        <li><strong>Select a Layer:</strong> Use the sidebar to toggle different data layers on and off</li>
-                        <li><strong>Adjust Opacity:</strong> Use the slider controls to adjust the transparency of each layer</li>
-                        <li><strong>View Data:</strong> Click on areas of the map to view detailed information about that location</li>
-                        <li><strong>Change Basemap:</strong> Use the basemap selector in the top right to change the background map</li>
-                    </ol>
-                </div>
-                <div class="column">
-                    <h3>Advanced Features</h3>
-                    <ol>
-                        <li><strong>Compare Indicators:</strong> Toggle multiple layers to compare different aspects of vulnerability</li>
-                        <li><strong>Adjust Colors:</strong> For vector layers, select different attributes and color schemes</li>
-                        <li><strong>Export Maps:</strong> Use the screenshot function to export your map view for reports</li>
-                        <li><strong>View Legend:</strong> Refer to the legend to understand the classification of values</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
         
         <div class="content-section">
             <h2>Contact Us</h2>
