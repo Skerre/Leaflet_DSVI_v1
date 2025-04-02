@@ -13,7 +13,7 @@ import { createAdminLabelLayers, generateAdminLabels } from './admin_labels.js';
 export const layers = {
     tiff: {},     // Store TIFF layers
     vector: {},   // Store vector layers
-    point: null,  // Store point layer
+    point: {},  // Store point layer
     countryOutline: null, // Store country outline
     labels: null  // Store label layers
 };

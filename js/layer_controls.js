@@ -69,6 +69,17 @@ const layerConfig = {
         colorRampPreview: 'pointColorPreview',
         attributeSelector: 'pointValueSelector'  // Reuse existing selector
     },
+    pointLayer2: {
+        type: 'point',
+        url: 'data/cities.geojson',
+        opacityControl: 'pointOpacity2',
+        opacityDisplay: 'pointOpacityValue2',
+        selectorId: 'pointValueSelector2',
+        // Add these new properties:
+        colorRampSelector: 'pointColorRamp2',
+        colorRampPreview: 'pointColorPreview2',
+        attributeSelector: 'pointValueSelector2'  // Reuse existing selector
+    },
     // Raster layers
     tiffLayer1: {
         type: 'raster',
@@ -193,6 +204,7 @@ function setupPointControls(layerId, map, layers, config, updateLegend) {
     setupColorRampSelector(config.colorRampSelector, config.colorRampPreview, () => {
         updatePointLayerFromControls(layerId, layers, updateLegend);
     });
+    
     const attributeSelector = document.getElementById(config.attributeSelector);
     if (attributeSelector) {
         attributeSelector.addEventListener('change', () => {
@@ -205,17 +217,23 @@ function setupPointControls(layerId, map, layers, config, updateLegend) {
  * Setup point layer property selector
  */
 function setupPointLayerSelector(layers) {
-    const pointSelector = document.getElementById('pointValueSelector');
-    if (!pointSelector) return;
-    
-    pointSelector.addEventListener('change', function() {
-        if (!layers.point) return;
-        
-        layers.point.eachLayer(layer => {
-            if (layer.feature) {
-                updateTooltip(layer.feature, layer, 'pointValueSelector');
-            }
-        });
+    // Process all point layer selectors
+    Object.keys(layerConfig).forEach(layerId => {
+        const config = layerConfig[layerId];
+        if (config.type === 'point' && config.selectorId) {
+            const selector = document.getElementById(config.selectorId);
+            if (!selector) return;
+            
+            selector.addEventListener('change', function() {
+                if (!layers.point[layerId]) return;
+                
+                layers.point[layerId].eachLayer(layer => {
+                    if (layer.feature) {
+                        updateTooltip(layer.feature, layer, config.selectorId);
+                    }
+                });
+            });
+        }
     });
 }
 
@@ -312,7 +330,7 @@ function setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideL
  */
 function updatePointLayerFromControls(layerId, layers, updateLegend) {
     const config = layerConfig[layerId];
-    if (!config || !layers.point) return;
+    if (!config || !layers.point[layerId]) return;
     
     // Get selected attribute
     const attributeSelector = document.getElementById(config.attributeSelector);
@@ -331,7 +349,7 @@ function updatePointLayerFromControls(layerId, layers, updateLegend) {
     
     // Update the point layer style
     updatePointLayerStyle(
-        layers.point, 
+        layers.point[layerId], 
         attributeSelector.value, 
         colorRamp, 
         opacity, 
@@ -353,12 +371,16 @@ async function loadLayer(layerId, map, layers, colorScales, updateLegend) {
             layers.vector[layerId].addTo(map);
             break;
             
-        case 'point':
-            if (!layers.point) {
-                layers.point = await loadPointLayer(config.url, { selectorId: config.selectorId });
-            }
-            layers.point.addTo(map);
-            break;
+            case 'point':
+                if (!layers.point[layerId]) {
+                    layers.point[layerId] = await loadPointLayer(config.url, { 
+                        selectorId: config.selectorId,
+                        attributeSelector: config.attributeSelector,
+                        colorRampSelector: config.colorRampSelector
+                    });
+                }
+                layers.point[layerId].addTo(map);
+                break;
             
         case 'raster':
             // Verify color scale exists
@@ -401,11 +423,11 @@ function removeLayer(layerId, map, layers, hideLegend) {
             }
             break;
             
-        case 'point':
-            if (layers.point) {
-                map.removeLayer(layers.point);
-            }
-            break;
+            case 'point':
+                if (layers.point[layerId]) {
+                    map.removeLayer(layers.point[layerId]);
+                }
+                break;
             
         case 'raster':
             if (layers.tiff[layerId]) {
@@ -475,14 +497,20 @@ function updateLayerOpacity(layerType, layerId, layers, opacity, updateLegend) {
             }
             break;
             
-        case 'point':
-            if (layers.point) {
-                layers.point.setStyle({ 
-                    fillOpacity: opacity, 
-                    opacity: opacity 
-                });
-            }
-            break;
+            case 'point':
+                if (layers.point[layerId]) {
+                    layers.point[layerId].setStyle({ 
+                        fillOpacity: opacity, 
+                        opacity: opacity 
+                    });
+                    
+                    // Update color-based styling if configured
+                    const config = layerConfig[layerId];
+                    if (config.attributeSelector && config.colorRampSelector) {
+                        updatePointLayerFromControls(layerId, layers, updateLegend);
+                    }
+                }
+                break;
     }
 }
 

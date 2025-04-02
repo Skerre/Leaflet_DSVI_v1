@@ -1,0 +1,17 @@
+{
+"type": "FeatureCollection",
+"name": "cities",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "City": "Bamako", "Latitude": 12.65, "Longitude": -8.0, "Population Estimate": 1297281 }, "geometry": { "type": "Point", "coordinates": [ -8.0, 12.65 ] } },
+{ "type": "Feature", "properties": { "City": "Sikasso", "Latitude": 11.3175, "Longitude": -5.6665, "Population Estimate": 225753 }, "geometry": { "type": "Point", "coordinates": [ -5.6665, 11.3175 ] } },
+{ "type": "Feature", "properties": { "City": "Kayes", "Latitude": 14.4469, "Longitude": -11.4445, "Population Estimate": 78406 }, "geometry": { "type": "Point", "coordinates": [ -11.4445, 14.4469 ] } },
+{ "type": "Feature", "properties": { "City": "Mopti", "Latitude": 14.4843, "Longitude": -4.1826, "Population Estimate": 114296 }, "geometry": { "type": "Point", "coordinates": [ -4.1826, 14.4843 ] } },
+{ "type": "Feature", "properties": { "City": "Koutiala", "Latitude": 12.3917, "Longitude": -5.4648, "Population Estimate": 99353 }, "geometry": { "type": "Point", "coordinates": [ -5.4648, 12.3917 ] } },
+{ "type": "Feature", "properties": { "City": "Ségou", "Latitude": 13.4457, "Longitude": -6.2622, "Population Estimate": 130690 }, "geometry": { "type": "Point", "coordinates": [ -6.2622, 13.4457 ] } },
+{ "type": "Feature", "properties": { "City": "Gao", "Latitude": 16.2717, "Longitude": -0.0447, "Population Estimate": 87000 }, "geometry": { "type": "Point", "coordinates": [ -0.0447, 16.2717 ] } },
+{ "type": "Feature", "properties": { "City": "Timbuktu", "Latitude": 16.7735, "Longitude": -3.0074, "Population Estimate": 32460 }, "geometry": { "type": "Point", "coordinates": [ -3.0074, 16.7735 ] } },
+{ "type": "Feature", "properties": { "City": "Kati", "Latitude": 12.7446, "Longitude": -8.0725, "Population Estimate": 114983 }, "geometry": { "type": "Point", "coordinates": [ -8.0725, 12.7446 ] } },
+{ "type": "Feature", "properties": { "City": "Koulikoro", "Latitude": 12.8628, "Longitude": -7.5599, "Population Estimate": 43174 }, "geometry": { "type": "Point", "coordinates": [ -7.5599, 12.8628 ] } }
+]
+}
