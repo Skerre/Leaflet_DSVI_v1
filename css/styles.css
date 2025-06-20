@@ -348,6 +348,123 @@
 }
 
 /* =========================================
+   * Info Popup Styles
+   * ========================================= */
+.info-popup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    max-height: 80vh;
+    overflow: hidden;
+    font-family: 'Calibri', sans-serif;
+}
+
+.info-popup-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.info-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #6c757d;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px 8px 0 0;
+}
+
+.info-popup-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.info-popup-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+}
+
+.info-popup-close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.info-popup-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 80px);
+}
+
+.info-section {
+    margin-bottom: 20px;
+}
+
+.info-section:last-child {
+    margin-bottom: 0;
+}
+
+.info-section h4 {
+    color: #343a40;
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 5px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #495057;
+    flex: 1;
+}
+
+.info-value {
+    font-weight: normal;
+    color: #6c757d;
+    text-align: right;
+    flex: 1;
+}
+
+.info-value.highlight {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.info-no-data {
+    color: #999;
+    font-style: italic;
+}
+
+/* =========================================
    * Tooltips
    * ========================================= */
 .leaflet-tooltip {

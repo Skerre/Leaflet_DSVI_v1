@@ -43,7 +43,71 @@
         <!-- Sidebar with layer controls -->
         <div id="sidebar">
             <!-- <h3>Datasets</h3> -->
-            
+            <!-- NEW: Social Vulnerability Dropdown -->
+            <div class="layer-group">
+                <button class="dropdown-btn"><strong>Social Vulnerability</strong></button>
+                <div class="dropdown-container">
+                    <!-- Admin Level 1 SV -->
+                    <div class="layer-checkbox">
+                        <input type="checkbox" id="svAdmin1Layer">
+                        <label for="svAdmin1Layer">Admin Level 1 SV</label>
+                    </div>
+                    
+                    <div class="layer-controls">
+                        <div class="opacity-control">
+                            <label for="svAdmin1Opacity">Opacity</label>
+                            <input type="range" id="svAdmin1Opacity" min="0" max="1" step="0.1" value="0.6">
+                            <span id="svAdmin1OpacityValue">60%</span>
+                        </div>
+                        
+                        <div class="color-ramp-selector">
+                            <label for="svAdmin1ColorRamp">Color Scheme:</label>
+                            <select id="svAdmin1ColorRamp"></select>
+                            <div id="svAdmin1ColorPreview" class="color-preview"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Level 2 SV -->
+                    <div class="layer-checkbox">
+                        <input type="checkbox" id="svAdmin2Layer">
+                        <label for="svAdmin2Layer">Admin Level 2 SV</label>
+                    </div>
+                    
+                    <div class="layer-controls">
+                        <div class="opacity-control">
+                            <label for="svAdmin2Opacity">Opacity</label>
+                            <input type="range" id="svAdmin2Opacity" min="0" max="1" step="0.1" value="0.6">
+                            <span id="svAdmin2OpacityValue">60%</span>
+                        </div>
+                        
+                        <div class="color-ramp-selector">
+                            <label for="svAdmin2ColorRamp">Color Scheme:</label>
+                            <select id="svAdmin2ColorRamp"></select>
+                            <div id="svAdmin2ColorPreview" class="color-preview"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Level 3 SV -->
+                    <div class="layer-checkbox">
+                        <input type="checkbox" id="svAdmin3Layer">
+                        <label for="svAdmin3Layer">Admin Level 3 SV</label>
+                    </div>
+                    
+                    <div class="layer-controls">
+                        <div class="opacity-control">
+                            <label for="svAdmin3Opacity">Opacity</label>
+                            <input type="range" id="svAdmin3Opacity" min="0" max="1" step="0.1" value="0.6">
+                            <span id="svAdmin3OpacityValue">60%</span>
+                        </div>
+                        
+                        <div class="color-ramp-selector">
+                            <label for="svAdmin3ColorRamp">Color Scheme:</label>
+                            <select id="svAdmin3ColorRamp"></select>
+                            <div id="svAdmin3ColorPreview" class="color-preview"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Vector Layers Dropdown -->
             <div class="layer-group">
                 <button class="dropdown-btn"><strong>Subnational Statistics</strong></button>
@@ -99,6 +163,8 @@
                     </div>
                 </div>
             </div>
+
+            
 
             <!-- Raster Layers Dropdown -->
             <div class="layer-group">
@@ -268,6 +334,19 @@
     <!-- Legend -->
     <div id="legend" class="legend"></div>
     
+    <!-- Information Popup -->
+    <div id="info-popup" class="info-popup" style="display: none;">
+        <div class="info-popup-content">
+            <div class="info-popup-header">
+                <h3 id="info-popup-title">Area Information</h3>
+                <button id="info-popup-close" class="info-popup-close">&times;</button>
+            </div>
+            <div id="info-popup-body" class="info-popup-body">
+                <!-- Content will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+    
     <!-- External library scripts -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" 
   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" 
@@ -285,6 +364,7 @@
     <script type="module" src="js/layer_controls.js"></script>
     <script type="module" src="js/legend.js"></script>
     <script type="module" src="js/basemaps.js"></script>
+    <script type="module" src="js/info_popup.js"></script>
     <script type="module" src="js/main.js"></script>
     
     <!-- UI initialization script -->
@@ -301,6 +381,11 @@
             // Handle Admin Level 2
             setupLayerControls('geojsonLayer2');
             
+            // Handle Social Vulnerability layers
+            setupSVLayerControls('svAdmin1Layer');
+            setupSVLayerControls('svAdmin2Layer');
+            setupSVLayerControls('svAdmin3Layer');
+            
             // Handle Point Layer
             setupPointControls();
             
@@ -315,6 +400,19 @@
                         const colorSelector = controlsContainer.querySelector('.color-ramp-selector');
                         
                         if (attributeSelector) attributeSelector.style.display = this.checked ? 'block' : 'none';
+                        if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+            }
+            
+            // Helper function for Social Vulnerability layer controls
+            function setupSVLayerControls(layerId) {
+                const checkbox = document.getElementById(layerId);
+                const controlsContainer = checkbox.closest('.layer-checkbox').nextElementSibling;
+                
+                if (checkbox && controlsContainer) {
+                    checkbox.addEventListener('change', function() {
+                        const colorSelector = controlsContainer.querySelector('.color-ramp-selector');
                         if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
                     });
                 }

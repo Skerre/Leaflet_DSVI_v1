@@ -9,6 +9,7 @@ import { loadVectorLayer,
 import { loadTiff } from './zoom-adaptive-tiff-loader.js';
 import { setupColorRampSelector, getColorRamp } from './color_ramp_selector.js';
 import { generateAdminLabels } from './admin_labels.js';
+import { addInfoPopupHandler } from './info_popup.js';
 
 // Layer configuration - maps checkbox IDs to loading functions and parameters
 const layerConfig = {
@@ -42,6 +43,55 @@ const layerConfig = {
         attributeSelector: 'vectorAttribute2',
         colorRampSelector: 'vectorColorRamp2',
         colorRampPreview: 'vectorColorPreview2'
+    },
+    // NEW: Social Vulnerability layers
+    svAdmin1Layer: {
+        type: 'sv-vector',
+        url: 'data/sv_admin1.geojson', // Update with your actual file path
+        style: {
+            color: "#2b83ba",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.6
+        },
+        opacityControl: 'svAdmin1Opacity',
+        opacityDisplay: 'svAdmin1OpacityValue',
+        colorRampSelector: 'svAdmin1ColorRamp',
+        colorRampPreview: 'svAdmin1ColorPreview',
+        svAttribute: 'SV', // Fixed attribute for SV layers
+        layerType: 'sv-admin1'
+    },
+    svAdmin2Layer: {
+        type: 'sv-vector',
+        url: 'data/sv_admin2.geojson', // Update with your actual file path
+        style: {
+            color: "#2b83ba",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.6
+        },
+        opacityControl: 'svAdmin2Opacity',
+        opacityDisplay: 'svAdmin2OpacityValue',
+        colorRampSelector: 'svAdmin2ColorRamp',
+        colorRampPreview: 'svAdmin2ColorPreview',
+        svAttribute: 'SV',
+        layerType: 'sv-admin2'
+    },
+    svAdmin3Layer: {
+        type: 'sv-vector',
+        url: 'data/sv_admin3.geojson', // Update with your actual file path
+        style: {
+            color: "#2b83ba",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.6
+        },
+        opacityControl: 'svAdmin3Opacity',
+        opacityDisplay: 'svAdmin3OpacityValue',
+        colorRampSelector: 'svAdmin3ColorRamp',
+        colorRampPreview: 'svAdmin3ColorPreview',
+        svAttribute: 'SV',
+        layerType: 'sv-admin3'
     },
     streetNetworkLayer: {
         type: 'vector',
@@ -157,8 +207,8 @@ const layerConfig = {
         opacityControl: 'tiffOpacity8',
         opacityDisplay: 'tiffOpacityValue8',
         colorScale: 'temp',
-        legendTitle: 'Conflicts (ACLED)',
-        legendDescription: 'Gradient representing number of conflict events in the past 15 years.',
+        legendTitle: 'Temperature',
+        legendDescription: 'Gradient representing temperature.',
         legendLabels: ['Low', 'Medium-Low', 'Medium', 'High', 'Very High']
     }
 };
@@ -188,6 +238,11 @@ export function setupLayerControls(map, layers, colorScales, updateLegend, hideL
             setupVectorControls(layerId, map, layers, config, updateLegend);
         }
 
+        // Setup SV vector layer controls (no attribute selector, just color ramp)
+        if (config.type === 'sv-vector' && config.colorRampSelector) {
+            setupSVVectorControls(layerId, map, layers, config, updateLegend);
+        }
+
         if (config.type === 'point' && config.colorRampSelector) {
             setupPointControls(layerId, map, layers, config, updateLegend);
         }
@@ -196,6 +251,45 @@ export function setupLayerControls(map, layers, colorScales, updateLegend, hideL
     // Setup point layer property selector
     setupPointLayerSelector(layers);
 }
+
+/**
+ * Setup Social Vulnerability vector layer color ramp controls
+ */
+function setupSVVectorControls(layerId, map, layers, config, updateLegend) {
+    // Setup color ramp selector
+    setupColorRampSelector(config.colorRampSelector, config.colorRampPreview, () => {
+        updateSVVectorLayerFromControls(layerId, layers, updateLegend);
+    });
+}
+
+/**
+ * Update SV vector layer based on selected color ramp
+ */
+function updateSVVectorLayerFromControls(layerId, layers, updateLegend) {
+    const config = layerConfig[layerId];
+    if (!config || !layers.vector[layerId]) return;
+    
+    // Get selected color ramp
+    const colorRampSelector = document.getElementById(config.colorRampSelector);
+    if (!colorRampSelector || !colorRampSelector.value) return;
+    
+    const colorRamp = getColorRamp(colorRampSelector.value);
+    if (!colorRamp) return;
+    
+    // Get opacity value
+    const opacitySlider = document.getElementById(config.opacityControl);
+    const opacity = opacitySlider ? parseFloat(opacitySlider.value) : 0.6;
+    
+    // Update the layer style using the fixed SV attribute
+    updateVectorLayerStyle(
+        layers.vector[layerId], 
+        config.svAttribute, // Use the fixed 'SV' attribute
+        colorRamp, 
+        opacity, 
+        updateLegend
+    );
+}
+
 /**
  * Setup point layer color ramp controls
  */
@@ -315,6 +409,16 @@ function setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideL
                         generateAdminLabels(layers.vector[layerId], 'adm2', layers.labels.adm2);
                     }
                 }
+
+                // If SV vector layer, setup color ramp selector
+                if (config.type === 'sv-vector' && config.colorRampSelector && layers.vector[layerId]) {
+                    // Set default color ramp if none selected
+                    const colorRampSelector = document.getElementById(config.colorRampSelector);
+                    if (colorRampSelector && !colorRampSelector.value) {
+                        colorRampSelector.value = 'blueToRed'; // Default color ramp for SV
+                        colorRampSelector.dispatchEvent(new Event('change'));
+                    }
+                }
             } catch (error) {
                 console.error(`Error loading layer ${layerId}:`, error);
                 this.checked = false;
@@ -365,22 +469,26 @@ async function loadLayer(layerId, map, layers, colorScales, updateLegend) {
     
     switch (config.type) {
         case 'vector':
+        case 'sv-vector':
             if (!layers.vector[layerId]) {
                 layers.vector[layerId] = await loadVectorLayer(config.url, { style: config.style });
+                
+                // Add info popup handler for all vector layers
+                addInfoPopupHandler(layers.vector[layerId], config.layerType || 'default');
             }
             layers.vector[layerId].addTo(map);
             break;
             
-            case 'point':
-                if (!layers.point[layerId]) {
-                    layers.point[layerId] = await loadPointLayer(config.url, { 
-                        selectorId: config.selectorId,
-                        attributeSelector: config.attributeSelector,
-                        colorRampSelector: config.colorRampSelector
-                    });
-                }
-                layers.point[layerId].addTo(map);
-                break;
+        case 'point':
+            if (!layers.point[layerId]) {
+                layers.point[layerId] = await loadPointLayer(config.url, { 
+                    selectorId: config.selectorId,
+                    attributeSelector: config.attributeSelector,
+                    colorRampSelector: config.colorRampSelector
+                });
+            }
+            layers.point[layerId].addTo(map);
+            break;
             
         case 'raster':
             // Verify color scale exists
@@ -420,14 +528,36 @@ function removeLayer(layerId, map, layers, hideLegend) {
         case 'vector':
             if (layers.vector[layerId]) {
                 map.removeLayer(layers.vector[layerId]);
+                // Hide legend if this vector layer had color styling applied
+                if (config.colorRampSelector) {
+                    const colorRampSelector = document.getElementById(config.colorRampSelector);
+                    if (colorRampSelector && colorRampSelector.value) {
+                        hideLegend();
+                    }
+                }
             }
             break;
             
-            case 'point':
-                if (layers.point[layerId]) {
-                    map.removeLayer(layers.point[layerId]);
+        case 'sv-vector':
+            if (layers.vector[layerId]) {
+                map.removeLayer(layers.vector[layerId]);
+                // Hide legend for SV layers since they update the legend when loaded
+                hideLegend();
+            }
+            break;
+            
+        case 'point':
+            if (layers.point[layerId]) {
+                map.removeLayer(layers.point[layerId]);
+                // Hide legend if this point layer had color styling applied
+                if (config.colorRampSelector) {
+                    const colorRampSelector = document.getElementById(config.colorRampSelector);
+                    if (colorRampSelector && colorRampSelector.value) {
+                        hideLegend();
+                    }
                 }
-                break;
+            }
+            break;
             
         case 'raster':
             if (layers.tiff[layerId]) {
@@ -476,6 +606,7 @@ function updateLayerOpacity(layerType, layerId, layers, opacity, updateLegend) {
             break;
             
         case 'vector':
+        case 'sv-vector':
             if (!layers.vector[layerId]) return;
             
             // Apply basic opacity
@@ -486,7 +617,9 @@ function updateLayerOpacity(layerType, layerId, layers, opacity, updateLegend) {
             
             // Update color-based styling if configured
             const config = layerConfig[layerId];
-            if (config.attributeSelector && config.colorRampSelector) {
+            if (config.type === 'sv-vector' && config.colorRampSelector) {
+                updateSVVectorLayerFromControls(layerId, layers, updateLegend);
+            } else if (config.attributeSelector && config.colorRampSelector) {
                 const attributeSelector = document.getElementById(config.attributeSelector);
                 const colorRampSelector = document.getElementById(config.colorRampSelector);
                 
@@ -497,20 +630,19 @@ function updateLayerOpacity(layerType, layerId, layers, opacity, updateLegend) {
             }
             break;
             
-            case 'point':
-                if (layers.point[layerId]) {
-                    layers.point[layerId].setStyle({ 
-                        fillOpacity: opacity, 
-                        opacity: opacity 
-                    });
-                    
-                    // Update color-based styling if configured
-                    const config = layerConfig[layerId];
-                    if (config.attributeSelector && config.colorRampSelector) {
-                        updatePointLayerFromControls(layerId, layers, updateLegend);
-                    }
+        case 'point':
+            if (layers.point[layerId]) {
+                layers.point[layerId].setStyle({ 
+                    fillOpacity: opacity, 
+                    opacity: opacity 
+                });
+                
+                // Update color-based styling if configured
+                const config = layerConfig[layerId];
+                if (config.attributeSelector && config.colorRampSelector) {
+                    updatePointLayerFromControls(layerId, layers, updateLegend);
                 }
-                break;
+            }
+            break;
     }
 }
-

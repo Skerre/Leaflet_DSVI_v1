@@ -53,7 +53,7 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
             // featuresTitle.innerHTML = 'Map Controls';
             
             // Add outline toggle button
-            const outlineButton = createButton('🗺️ Outline', contentContainer);
+            const outlineButton = createButton('🗺️ Outline Mali', contentContainer);
             outlineButton.classList.add('active'); // Initially active
             
             // Add ADM1 button

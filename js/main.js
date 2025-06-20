@@ -8,12 +8,13 @@ import { colorScales } from './color_scales.js';
 import { loadVectorLayer } from './vector_layers.js';
 import { initializeSplitMap } from './split-map.js';
 import { createAdminLabelLayers, generateAdminLabels } from './admin_labels.js';
+import { initializeInfoPopup } from './info_popup.js';
 
 // Global layer storage
 export const layers = {
     tiff: {},     // Store TIFF layers
     vector: {},   // Store vector layers
-    point: {},  // Store point layer
+    point: {},    // Store point layer
     countryOutline: null, // Store country outline
     labels: null  // Store label layers
 };
@@ -28,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Initialize UI components
     initializeLegend();
+    initializeInfoPopup(); // Initialize the info popup system
     setupDropdownToggles();
     
     // Load Mali outline by default
