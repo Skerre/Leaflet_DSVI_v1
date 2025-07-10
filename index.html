@@ -7,6 +7,7 @@
     
     <!-- CSS styles -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/info_panel.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
   crossorigin=""/>
@@ -42,72 +43,45 @@
     <div class="main-container">
         <!-- Sidebar with layer controls -->
         <div id="sidebar">
-            <!-- <h3>Datasets</h3> -->
             <!-- NEW: Social Vulnerability Dropdown -->
             <div class="layer-group">
-                <button class="dropdown-btn"><strong>Social Vulnerability</strong></button>
+                <button class="dropdown-btn social-vulnerability-btn"><strong>Social Vulnerability</strong></button>
                 <div class="dropdown-container">
-                    <!-- Admin Level 1 SV -->
-                    <div class="layer-checkbox">
-                        <input type="checkbox" id="svAdmin1Layer">
-                        <label for="svAdmin1Layer">Admin Level 1 SV</label>
+                    <!-- Radio buttons for exclusive selection -->
+                    <div class="sv-radio-group">
+                        <div class="sv-radio-option">
+                            <input type="radio" id="svAdmin1Layer" name="svLayer" value="admin1" checked>
+                            <label for="svAdmin1Layer">Vulnerability: Regional</label>
+                        </div>
+                        
+                        <div class="sv-radio-option">
+                            <input type="radio" id="svAdmin2Layer" name="svLayer" value="admin2">
+                            <label for="svAdmin2Layer">Vulnerability: Cercles</label>
+                        </div>
+                        
+                        <div class="sv-radio-option">
+                            <input type="radio" id="svAdmin3Layer" name="svLayer" value="admin3">
+                            <label for="svAdmin3Layer">Vulnerability: Communes</label>
+                        </div>
                     </div>
                     
+                    <!-- Single opacity control for the selected layer -->
                     <div class="layer-controls">
-                        <div class="opacity-control">
-                            <label for="svAdmin1Opacity">Opacity</label>
-                            <input type="range" id="svAdmin1Opacity" min="0" max="1" step="0.1" value="0.6">
-                            <span id="svAdmin1OpacityValue">60%</span>
+                        <div class="opacity-control sv-opacity-control">
+                            <label for="svOpacity">Opacity</label>
+                            <input type="range" id="svOpacity" min="0" max="1" step="0.1" value="0.6">
+                            <span id="svOpacityValue">60%</span>
                         </div>
                         
                         <div class="color-ramp-selector">
-                            <label for="svAdmin1ColorRamp">Color Scheme:</label>
-                            <select id="svAdmin1ColorRamp"></select>
-                            <div id="svAdmin1ColorPreview" class="color-preview"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Admin Level 2 SV -->
-                    <div class="layer-checkbox">
-                        <input type="checkbox" id="svAdmin2Layer">
-                        <label for="svAdmin2Layer">Admin Level 2 SV</label>
-                    </div>
-                    
-                    <div class="layer-controls">
-                        <div class="opacity-control">
-                            <label for="svAdmin2Opacity">Opacity</label>
-                            <input type="range" id="svAdmin2Opacity" min="0" max="1" step="0.1" value="0.6">
-                            <span id="svAdmin2OpacityValue">60%</span>
-                        </div>
-                        
-                        <div class="color-ramp-selector">
-                            <label for="svAdmin2ColorRamp">Color Scheme:</label>
-                            <select id="svAdmin2ColorRamp"></select>
-                            <div id="svAdmin2ColorPreview" class="color-preview"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Admin Level 3 SV -->
-                    <div class="layer-checkbox">
-                        <input type="checkbox" id="svAdmin3Layer">
-                        <label for="svAdmin3Layer">Admin Level 3 SV</label>
-                    </div>
-                    
-                    <div class="layer-controls">
-                        <div class="opacity-control">
-                            <label for="svAdmin3Opacity">Opacity</label>
-                            <input type="range" id="svAdmin3Opacity" min="0" max="1" step="0.1" value="0.6">
-                            <span id="svAdmin3OpacityValue">60%</span>
-                        </div>
-                        
-                        <div class="color-ramp-selector">
-                            <label for="svAdmin3ColorRamp">Color Scheme:</label>
-                            <select id="svAdmin3ColorRamp"></select>
-                            <div id="svAdmin3ColorPreview" class="color-preview"></div>
+                            <label for="svColorRamp">Color Scheme:</label>
+                            <select id="svColorRamp"></select>
+                            <div id="svColorPreview" class="color-preview"></div>
                         </div>
                     </div>
                 </div>
             </div>
+            
             <!-- Vector Layers Dropdown -->
             <div class="layer-group">
                 <button class="dropdown-btn"><strong>Subnational Statistics</strong></button>
@@ -115,10 +89,10 @@
                     <!-- Admin Level 1 Layer -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="geojsonLayer">
-                        <label for="geojsonLayer">Admin Level 1 Statistics</label>
+                        <label for="geojsonLayer">Statistics: Regional</label>
                     </div>
                     
-                    <div class="layer-controls">
+                    <div class="layer-controls" style="display: none;">
                         <div class="opacity-control">
                             <label for="geojsonOpacity">Opacity</label>
                             <input type="range" id="geojsonOpacity" min="0" max="1" step="0.1" value="0.5">
@@ -140,10 +114,10 @@
                     <!-- Admin Level 2 Layer -->
                     <div class="layer-checkbox">
                         <input type="checkbox" id="geojsonLayer2">
-                        <label for="geojsonLayer2">Admin Level 2 Statistics</label>
+                        <label for="geojsonLayer2">Statistics: Cercles</label>
                     </div>
                     
-                    <div class="layer-controls">
+                    <div class="layer-controls" style="display: none;">
                         <div class="opacity-control">
                             <label for="geojsonOpacity2">Opacity</label>
                             <input type="range" id="geojsonOpacity2" min="0" max="1" step="0.1" value="0.4">
@@ -163,8 +137,6 @@
                     </div>
                 </div>
             </div>
-
-            
 
             <!-- Raster Layers Dropdown -->
             <div class="layer-group">
@@ -187,23 +159,20 @@
                         <input type="checkbox" id="tiffLayer3">
                         <label for="tiffLayer3">Social Vulnerability</label>
                     </div>
-                    <div class="opacity-control">
+                    <div class="opacity-control" style="display: none;">
                         <label for="tiffOpacity3">Opacity</label>
                         <input type="range" id="tiffOpacity3" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue3">100%</span>
                     </div>
                     <!-- Street Network -->
                     <div class="layer-checkbox">
-                        
                         <input type="checkbox" id="streetNetworkLayer">
                         <label for="streetNetworkLayer">Street Network</label>
                     </div>
-                    <div class="opacity-control">
+                    <div class="opacity-control" style="display: none;">
                         <label for="streetNetworkOpacityValue">Opacity</label>
                         <input type="range" id="streetNetworkOpacityValue" min="0" max="1" step="0.1" value="1">
                         <span id="streetNetworkOpacity">100%</span>
-                        <!-- <label>Opacity: <span id="streetNetworkOpacityValue">50%</span></label> -->
-                        <!-- <input type="range" id="streetNetworkOpacity" min="0" max="1" step="0.1" value="0.5"> -->
                     </div>
                 
                     <!-- Cell Tower Density -->
@@ -211,7 +180,7 @@
                         <input type="checkbox" id="tiffLayer1">
                         <label for="tiffLayer1">Cell Tower Density</label>
                     </div>
-                    <div class="opacity-control">
+                    <div class="opacity-control" style="display: none;">
                         <label for="tiffOpacity1">Opacity</label>
                         <input type="range" id="tiffOpacity1" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue1">100%</span>
@@ -222,7 +191,7 @@
                         <input type="checkbox" id="tiffLayer2">
                         <label for="tiffLayer2">Population Density</label>
                     </div>
-                    <div class="opacity-control">
+                    <div class="opacity-control" style="display: none;">
                         <label for="tiffOpacity2">Opacity</label>
                         <input type="range" id="tiffOpacity2" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue2">100%</span>
@@ -232,7 +201,7 @@
                         <input type="checkbox" id="tiffLayer4">
                         <label for="tiffLayer4">Relative Wealth</label>
                     </div>
-                    <div class="opacity-control">
+                    <div class="opacity-control" style="display: none;">
                         <label for="tiffOpacity4">Opacity</label>
                         <input type="range" id="tiffOpacity4" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue4">100%</span>
@@ -242,7 +211,7 @@
                         <input type="checkbox" id="tiffLayer5">
                         <label for="tiffLayer5">Nightlight Intensity</label>
                     </div>
-                    <div class="opacity-control">
+                    <div class="opacity-control" style="display: none;">
                         <label for="tiffOpacity5">Opacity</label>
                         <input type="range" id="tiffOpacity5" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue5">100%</span>
@@ -252,7 +221,7 @@
                         <input type="checkbox" id="tiffLayer6">
                         <label for="tiffLayer6">NDVI</label>
                     </div>
-                    <div class="opacity-control">
+                    <div class="opacity-control" style="display: none;">
                         <label for="tiffOpacity6">Opacity</label>
                         <input type="range" id="tiffOpacity6" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue6">100%</span>
@@ -262,7 +231,7 @@
                         <input type="checkbox" id="tiffLayer7">
                         <label for="tiffLayer7">Conflicts</label>
                     </div>
-                    <div class="opacity-control">
+                    <div class="opacity-control" style="display: none;">
                         <label for="tiffOpacity7">Opacity</label>
                         <input type="range" id="tiffOpacity7" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue7">100%</span>
@@ -272,7 +241,7 @@
                         <input type="checkbox" id="tiffLayer8">
                         <label for="tiffLayer8">Temperature</label>
                     </div>
-                    <div class="opacity-control">
+                    <div class="opacity-control" style="display: none;">
                         <label for="tiffOpacity8">Opacity</label>
                         <input type="range" id="tiffOpacity8" min="0" max="1" step="0.1" value="1">
                         <span id="tiffOpacityValue8">100%</span>
@@ -286,39 +255,43 @@
                 <div class="dropdown-container">
                     <div class="layer-checkbox">
                         <input type="checkbox" id="pointLayer">
-                        <label for="pointLayer">DHS Statistics</label>
+                        <label for="pointLayer">Household Survey Statistics</label>
                     </div>
-                    <div class="opacity-control">
-                        <label for="pointOpacity">Opacity</label>
-                        <input type="range" id="pointOpacity" min="0" max="1" step="0.1" value="1">
-                        <span id="pointOpacityValue">100%</span>
-                    </div>
-                    <div class="attribute-selector">
-                        <label for="pointValueSelector">Value to Display:</label>
-                        <select id="pointValueSelector"></select>
-                    </div>
-                    <div class="color-ramp-selector">
-                        <label for="pointColorRamp">Color Scheme:</label>
-                        <select id="pointColorRamp"></select>
-                        <div id="pointColorPreview" class="color-preview"></div>
+                    <div class="layer-controls" style="display: none;">
+                        <div class="opacity-control">
+                            <label for="pointOpacity">Opacity</label>
+                            <input type="range" id="pointOpacity" min="0" max="1" step="0.1" value="1">
+                            <span id="pointOpacityValue">100%</span>
+                        </div>
+                        <div class="attribute-selector">
+                            <label for="pointValueSelector">Value to Display:</label>
+                            <select id="pointValueSelector"></select>
+                        </div>
+                        <div class="color-ramp-selector">
+                            <label for="pointColorRamp">Color Scheme:</label>
+                            <select id="pointColorRamp"></select>
+                            <div id="pointColorPreview" class="color-preview"></div>
+                        </div>
                     </div>
                     <div class="layer-checkbox">
                         <input type="checkbox" id="pointLayer2">
                         <label for="pointLayer2">Cities</label>
                     </div>
-                    <div class="opacity-control">
-                        <label for="pointOpacity2">Opacity</label>
-                        <input type="range" id="pointOpacity2" min="0" max="1" step="0.1" value="1">
-                        <span id="pointOpacityValue2">100%</span>
-                    </div>
-                    <div class="attribute-selector">
-                        <label for="pointValueSelector2">Value to Display:</label>
-                        <select id="pointValueSelector2"></select>
-                    </div>
-                    <div class="color-ramp-selector">
-                        <label for="pointColorRamp2">Color Scheme:</label>
-                        <select id="pointColorRamp2"></select>
-                        <div id="pointColorPreview2" class="color-preview2"></div>
+                    <div class="layer-controls" style="display: none;">
+                        <div class="opacity-control">
+                            <label for="pointOpacity2">Opacity</label>
+                            <input type="range" id="pointOpacity2" min="0" max="1" step="0.1" value="1">
+                            <span id="pointOpacityValue2">100%</span>
+                        </div>
+                        <div class="attribute-selector">
+                            <label for="pointValueSelector2">Value to Display:</label>
+                            <select id="pointValueSelector2"></select>
+                        </div>
+                        <div class="color-ramp-selector">
+                            <label for="pointColorRamp2">Color Scheme:</label>
+                            <select id="pointColorRamp2"></select>
+                            <div id="pointColorPreview2" class="color-preview2"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -365,6 +338,7 @@
     <script type="module" src="js/legend.js"></script>
     <script type="module" src="js/basemaps.js"></script>
     <script type="module" src="js/info_popup.js"></script>
+    <script type="module" src="js/welcome_popup.js"></script>
     <script type="module" src="js/main.js"></script>
     
     <!-- UI initialization script -->
@@ -381,10 +355,8 @@
             // Handle Admin Level 2
             setupLayerControls('geojsonLayer2');
             
-            // Handle Social Vulnerability layers
-            setupSVLayerControls('svAdmin1Layer');
-            setupSVLayerControls('svAdmin2Layer');
-            setupSVLayerControls('svAdmin3Layer');
+            // Handle Social Vulnerability radio buttons
+            setupSVRadioControls();
             
             // Handle Point Layer
             setupPointControls();
@@ -399,43 +371,101 @@
                         const attributeSelector = controlsContainer.querySelector('.attribute-selector');
                         const colorSelector = controlsContainer.querySelector('.color-ramp-selector');
                         
+                        // Show/hide all controls when layer is toggled
+                        controlsContainer.style.display = this.checked ? 'block' : 'none';
+                        
+                        // Also handle individual selectors if they exist
                         if (attributeSelector) attributeSelector.style.display = this.checked ? 'block' : 'none';
                         if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
                     });
                 }
             }
             
-            // Helper function for Social Vulnerability layer controls
-            function setupSVLayerControls(layerId) {
+            // Helper function for raster layers (High Resolution Maps)
+            function setupRasterLayerControls(layerId) {
                 const checkbox = document.getElementById(layerId);
-                const controlsContainer = checkbox.closest('.layer-checkbox').nextElementSibling;
+                const opacityControl = checkbox.closest('.layer-checkbox').nextElementSibling;
                 
-                if (checkbox && controlsContainer) {
+                if (checkbox && opacityControl && opacityControl.classList.contains('opacity-control')) {
                     checkbox.addEventListener('change', function() {
-                        const colorSelector = controlsContainer.querySelector('.color-ramp-selector');
-                        if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
+                        opacityControl.style.display = this.checked ? 'block' : 'none';
                     });
+                }
+            }
+            
+            // Helper function for point layers
+            function setupPointControls() {
+                const pointCheckbox = document.getElementById('pointLayer');
+                const pointControlsContainer = pointCheckbox.closest('.layer-checkbox').nextElementSibling;
+                
+                const pointCheckbox2 = document.getElementById('pointLayer2');
+                const pointControlsContainer2 = pointCheckbox2.closest('.layer-checkbox').nextElementSibling;
+                
+                if (pointCheckbox && pointControlsContainer) {
+                    pointCheckbox.addEventListener('change', function() {
+                        pointControlsContainer.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+                
+                if (pointCheckbox2 && pointControlsContainer2) {
+                    pointCheckbox2.addEventListener('change', function() {
+                        pointControlsContainer2.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+            }
+            
+            // Setup all raster layer controls
+            setupRasterLayerControls('tiffLayer1');
+            setupRasterLayerControls('tiffLayer2'); 
+            setupRasterLayerControls('tiffLayer3');
+            setupRasterLayerControls('tiffLayer4');
+            setupRasterLayerControls('tiffLayer5');
+            setupRasterLayerControls('tiffLayer6');
+            setupRasterLayerControls('tiffLayer7');
+            setupRasterLayerControls('tiffLayer8');
+            setupRasterLayerControls('streetNetworkLayer');
+            
+            // Helper function for Social Vulnerability radio controls
+            function setupSVRadioControls() {
+                const radioButtons = document.querySelectorAll('input[name="svLayer"]');
+                const controlsContainer = document.querySelector('.social-vulnerability-btn').nextElementSibling.querySelector('.layer-controls');
+                
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('click', function() {
+                        // This is handled by the main layer controls, but we need to track state for UI
+                        setTimeout(() => {
+                            const anyChecked = Array.from(radioButtons).some(r => r.checked);
+                            if (controlsContainer) {
+                                controlsContainer.style.display = anyChecked ? 'block' : 'none';
+                            }
+                        }, 10);
+                    });
+                });
+                
+                // Show controls by default since Admin Level 1 is checked
+                if (controlsContainer) {
+                    controlsContainer.style.display = 'block';
                 }
             }
             
             // Set up point layer controls
             function setupPointControls() {
-    const pointCheckbox = document.getElementById('pointLayer');
-    const pointSelector = document.getElementById('pointValueSelector');
-    const colorSelector = document.getElementById('pointColorRamp').parentElement;
-    
-    if (pointCheckbox && pointSelector) {
-        // Initially hide the selectors
-        pointSelector.parentElement.style.display = 'none';
-        if (colorSelector) colorSelector.style.display = 'none';
-        
-        pointCheckbox.addEventListener('change', function() {
-            // Show/hide the selectors based on checkbox state
-            pointSelector.parentElement.style.display = this.checked ? 'block' : 'none';
-            if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
-        });
-    }
-}
+                const pointCheckbox = document.getElementById('pointLayer');
+                const pointSelector = document.getElementById('pointValueSelector');
+                const colorSelector = document.getElementById('pointColorRamp').parentElement;
+                
+                if (pointCheckbox && pointSelector) {
+                    // Initially hide the selectors
+                    pointSelector.parentElement.style.display = 'none';
+                    if (colorSelector) colorSelector.style.display = 'none';
+                    
+                    pointCheckbox.addEventListener('change', function() {
+                        // Show/hide the selectors based on checkbox state
+                        pointSelector.parentElement.style.display = this.checked ? 'block' : 'none';
+                        if (colorSelector) colorSelector.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+            }
         });
     </script>
 </body>

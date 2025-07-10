@@ -9,6 +9,8 @@ import { loadVectorLayer } from './vector_layers.js';
 import { initializeSplitMap } from './split-map.js';
 import { createAdminLabelLayers, generateAdminLabels } from './admin_labels.js';
 import { initializeInfoPopup } from './info_popup.js';
+import { WelcomePopup } from './welcome_popup.js';
+import { InfoPanel } from './info_panel.js';
 
 // Global layer storage
 export const layers = {
@@ -18,6 +20,9 @@ export const layers = {
     countryOutline: null, // Store country outline
     labels: null  // Store label layers
 };
+
+// Info panel instance
+export let infoPanel = null;
 
 // Initialize application
 document.addEventListener('DOMContentLoaded', async function() {
@@ -38,11 +43,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize admin label layers
     layers.labels = createAdminLabelLayers(mainMap, layers.vector, layers.countryOutline, compareMap);
     
-    // Setup layer controls
+    // Setup layer controls (this will auto-load SV Admin Level 1)
     setupLayerControls(mainMap, layers, colorScales, updateLegend, hideLegend);
     
     // Initialize opacity values display
     setupOpacityDisplays();
+    
+    // Ensure Social Vulnerability dropdown is open by default
+    openSocialVulnerabilityDropdown();
+    
+    // Initialize welcome popup (will only show if not shown before)
+    setTimeout(() => {
+        new WelcomePopup();
+    }, 500); // Small delay to ensure page is fully loaded
 });
 
 /**
@@ -72,8 +85,60 @@ function setupMainMap(mapId) {
         maxWidth: 200
     }).addTo(map);
 
+        // Initialize Info Panel
+    infoPanel = new InfoPanel({
+        title: 'Layer Analysis & Reports',
+        width: '420px',
+        maxHeight: '75vh'
+    });
+    infoPanel.setMap(map);
+    
+    // Set global reference for download functionality
+    window.infoPanelInstance = infoPanel;
+    
+    // Add info panel toggle control
+    const infoToggle = createInfoPanelToggle(map);
+    infoToggle.addTo(map);
+
     return map;
 }
+
+
+
+function createInfoPanelToggle(map) {
+    const InfoToggleControl = L.Control.extend({
+        onAdd: function(map) {
+            const container = L.DomUtil.create('div', 'info-toggle-control');
+            container.innerHTML = `
+                <button class="info-toggle-button" title="Toggle Info Panel">
+                    📊
+                </button>
+            `;
+            
+            const button = container.querySelector('.info-toggle-button');
+            
+            L.DomEvent.on(button, 'click', function(e) {
+                L.DomEvent.stopPropagation(e);
+                if (infoPanel) {
+                    infoPanel.toggle();
+                    button.classList.toggle('active', infoPanel.isVisible);
+                }
+            });
+            
+            // Prevent map click events
+            L.DomEvent.disableClickPropagation(container);
+            
+            return container;
+        },
+
+        onRemove: function(map) {
+            // Nothing to do here
+        }
+    });
+
+    return new InfoToggleControl({ position: 'topleft' });
+}
+
 
 /**
  * Set up the comparison map with basemap only
@@ -131,6 +196,19 @@ function setupDropdownToggles() {
 }
 
 /**
+ * Open Social Vulnerability dropdown by default
+ */
+function openSocialVulnerabilityDropdown() {
+    const svButton = document.querySelector('.social-vulnerability-btn');
+    const svContainer = svButton?.nextElementSibling;
+    
+    if (svButton && svContainer) {
+        svButton.classList.add('active');
+        svContainer.style.display = 'block';
+    }
+}
+
+/**
  * Initialize the opacity value displays
  */
 function setupOpacityDisplays() {
@@ -144,3 +222,8 @@ function setupOpacityDisplays() {
         }
     });
 }
+
+// Make WelcomePopup available globally for testing/help
+window.showWelcome = function() {
+    new WelcomePopup(true);
+};

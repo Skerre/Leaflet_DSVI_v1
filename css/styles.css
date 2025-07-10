@@ -118,6 +118,7 @@
     outline: none;
     transition: 0.3s;
     border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-btn:after {
@@ -130,12 +131,63 @@
     content: '\25B2';
 }
 
+/* Generic active dropdown styling - green gradient for all */
+.dropdown-btn.active {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.dropdown-btn.active:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
 .dropdown-container {
     display: none;
     overflow: hidden;
     background-color: #f1f1f1;
     border-radius: 5px;
     width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================================
+   * Social Vulnerability Radio Controls
+   * ========================================= */
+.sv-radio-group {
+    padding: 10px;
+}
+
+.sv-radio-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.sv-radio-option:hover {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.sv-radio-option input[type="radio"] {
+    margin-right: 8px;
+    accent-color: #28a745;
+}
+
+.sv-radio-option label {
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+}
+
+.sv-radio-option input[type="radio"]:checked + label {
+    color: #28a745;
+    font-weight: 600;
 }
 
 /* =========================================
@@ -156,10 +208,26 @@
     padding: 5px;
 }
 
+/* Social Vulnerability opacity controls should always be visible */
+.sv-opacity-control {
+    display: flex !important;
+}
+
 .opacity-control label {
     font-size: 14px;
     color: #333;
     margin-right: 5px;
+}
+
+/* Hide layer controls by default for non-SV layers */
+.layer-controls {
+    padding: 5px 15px;
+    margin-bottom: 10px;
+}
+
+/* Social Vulnerability layer controls should be visible by default */
+.social-vulnerability-btn + .dropdown-container .layer-controls {
+    display: block !important;
 }
 
 /* Custom slider styles */
@@ -190,6 +258,30 @@
     background: #6c757d;
     cursor: pointer;
     border: 2px solid #343a40;
+}
+
+.attribute-selector,
+.color-ramp-selector {
+    display: none;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.attribute-selector label,
+.color-ramp-selector label {
+    display: block;
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.attribute-selector select,
+.color-ramp-selector select {
+    width: 100%;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    font-size: 14px;
 }
 
 /* =========================================

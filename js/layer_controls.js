@@ -44,58 +44,58 @@ const layerConfig = {
         colorRampSelector: 'vectorColorRamp2',
         colorRampPreview: 'vectorColorPreview2'
     },
-    // NEW: Social Vulnerability layers
+    // NEW: Social Vulnerability layers with radio button control
     svAdmin1Layer: {
         type: 'sv-vector',
-        url: 'data/sv_admin1.geojson', // Update with your actual file path
+        url: 'data/sv_admin1.geojson',
         style: {
             color: "#2b83ba",
             weight: 2,
             opacity: 1,
             fillOpacity: 0.6
         },
-        opacityControl: 'svAdmin1Opacity',
-        opacityDisplay: 'svAdmin1OpacityValue',
-        colorRampSelector: 'svAdmin1ColorRamp',
-        colorRampPreview: 'svAdmin1ColorPreview',
-        svAttribute: 'SV', // Fixed attribute for SV layers
+        opacityControl: 'svOpacity',
+        opacityDisplay: 'svOpacityValue',
+        colorRampSelector: 'svColorRamp',
+        colorRampPreview: 'svColorPreview',
+        svAttribute: 'SV',
         layerType: 'sv-admin1'
     },
     svAdmin2Layer: {
         type: 'sv-vector',
-        url: 'data/sv_admin2.geojson', // Update with your actual file path
+        url: 'data/sv_admin2.geojson',
         style: {
             color: "#2b83ba",
             weight: 2,
             opacity: 1,
             fillOpacity: 0.6
         },
-        opacityControl: 'svAdmin2Opacity',
-        opacityDisplay: 'svAdmin2OpacityValue',
-        colorRampSelector: 'svAdmin2ColorRamp',
-        colorRampPreview: 'svAdmin2ColorPreview',
+        opacityControl: 'svOpacity',
+        opacityDisplay: 'svOpacityValue',
+        colorRampSelector: 'svColorRamp',
+        colorRampPreview: 'svColorPreview',
         svAttribute: 'SV',
         layerType: 'sv-admin2'
     },
     svAdmin3Layer: {
         type: 'sv-vector',
-        url: 'data/sv_admin3.geojson', // Update with your actual file path
+        url: 'data/sv_admin3.geojson',
         style: {
             color: "#2b83ba",
             weight: 2,
             opacity: 1,
             fillOpacity: 0.6
         },
-        opacityControl: 'svAdmin3Opacity',
-        opacityDisplay: 'svAdmin3OpacityValue',
-        colorRampSelector: 'svAdmin3ColorRamp',
-        colorRampPreview: 'svAdmin3ColorPreview',
+        opacityControl: 'svOpacity',
+        opacityDisplay: 'svOpacityValue',
+        colorRampSelector: 'svColorRamp',
+        colorRampPreview: 'svColorPreview',
         svAttribute: 'SV',
         layerType: 'sv-admin3'
     },
     streetNetworkLayer: {
         type: 'vector',
-        url: 'data/street_subset.geojson', // Update with your actual file path
+        url: 'data/street_subset.geojson',
         style: {
             color: "#3388ff",
             weight: 0.5,
@@ -114,10 +114,9 @@ const layerConfig = {
         opacityControl: 'pointOpacity',
         opacityDisplay: 'pointOpacityValue',
         selectorId: 'pointValueSelector',
-        // Add these new properties:
         colorRampSelector: 'pointColorRamp',
         colorRampPreview: 'pointColorPreview',
-        attributeSelector: 'pointValueSelector'  // Reuse existing selector
+        attributeSelector: 'pointValueSelector'
     },
     pointLayer2: {
         type: 'point',
@@ -125,10 +124,9 @@ const layerConfig = {
         opacityControl: 'pointOpacity2',
         opacityDisplay: 'pointOpacityValue2',
         selectorId: 'pointValueSelector2',
-        // Add these new properties:
         colorRampSelector: 'pointColorRamp2',
         colorRampPreview: 'pointColorPreview2',
-        attributeSelector: 'pointValueSelector2'  // Reuse existing selector
+        attributeSelector: 'pointValueSelector2'
     },
     // Raster layers
     tiffLayer1: {
@@ -213,6 +211,9 @@ const layerConfig = {
     }
 };
 
+// Store reference to current active SV layer
+let currentSVLayer = null;
+
 /**
  * Setup all layer controls and their event listeners
  * @param {Object} map - Leaflet map instance
@@ -224,9 +225,14 @@ const layerConfig = {
 export function setupLayerControls(map, layers, colorScales, updateLegend, hideLegend) {
     // Initialize layer handlers
     Object.keys(layerConfig).forEach(layerId => {
-        setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideLegend);
-        
         const config = layerConfig[layerId];
+        
+        // Skip SV layers - they are handled by radio buttons
+        if (config.type === 'sv-vector') {
+            return;
+        }
+        
+        setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideLegend);
         
         // Setup opacity control if configured
         if (config.opacityControl && config.opacityDisplay) {
@@ -238,56 +244,212 @@ export function setupLayerControls(map, layers, colorScales, updateLegend, hideL
             setupVectorControls(layerId, map, layers, config, updateLegend);
         }
 
-        // Setup SV vector layer controls (no attribute selector, just color ramp)
-        if (config.type === 'sv-vector' && config.colorRampSelector) {
-            setupSVVectorControls(layerId, map, layers, config, updateLegend);
-        }
-
         if (config.type === 'point' && config.colorRampSelector) {
             setupPointControls(layerId, map, layers, config, updateLegend);
         }
     });
     
+    // Setup Social Vulnerability radio button controls
+    setupSVRadioControls(map, layers, colorScales, updateLegend, hideLegend);
+    
     // Setup point layer property selector
     setupPointLayerSelector(layers);
+    
+    // Auto-load Admin Level 1 SV on startup
+    autoLoadSVAdmin1(map, layers, colorScales, updateLegend, hideLegend);
 }
 
 /**
- * Setup Social Vulnerability vector layer color ramp controls
+ * Setup Social Vulnerability radio button controls
  */
-function setupSVVectorControls(layerId, map, layers, config, updateLegend) {
-    // Setup color ramp selector
-    setupColorRampSelector(config.colorRampSelector, config.colorRampPreview, () => {
-        updateSVVectorLayerFromControls(layerId, layers, updateLegend);
+function setupSVRadioControls(map, layers, colorScales, updateLegend, hideLegend) {
+    const radioButtons = document.querySelectorAll('input[name="svLayer"]');
+    
+    radioButtons.forEach(radio => {
+        radio.addEventListener('click', async function() {
+            // If this radio is already checked, deselect it
+            if (this.dataset.wasChecked === 'true') {
+                this.checked = false;
+                this.dataset.wasChecked = 'false';
+                
+                // Remove current SV layer if exists
+                if (currentSVLayer && layers.vector[currentSVLayer]) {
+                    map.removeLayer(layers.vector[currentSVLayer]);
+                }
+                currentSVLayer = null;
+                hideLegend();
+                
+                // Hide controls when none is selected
+                const controlsContainer = document.querySelector('.social-vulnerability-btn').nextElementSibling.querySelector('.layer-controls');
+                if (controlsContainer) {
+                    controlsContainer.style.display = 'none';
+                }
+                return;
+            }
+            
+            // Uncheck all other radios and reset their state
+            radioButtons.forEach(r => {
+                r.dataset.wasChecked = 'false';
+            });
+            
+            // Mark this one as checked
+            this.dataset.wasChecked = 'true';
+            this.checked = true;
+            
+            // Remove current SV layer if exists
+            if (currentSVLayer && layers.vector[currentSVLayer]) {
+                map.removeLayer(layers.vector[currentSVLayer]);
+            }
+            
+            // Load new SV layer
+            const layerId = this.id;
+            await loadSVLayer(layerId, map, layers, colorScales, updateLegend, hideLegend);
+            currentSVLayer = layerId;
+            
+            // Show controls when a layer is selected
+            const controlsContainer = document.querySelector('.social-vulnerability-btn').nextElementSibling.querySelector('.layer-controls');
+            if (controlsContainer) {
+                controlsContainer.style.display = 'block';
+            }
+        });
+        
+        // Initialize the data attribute
+        radio.dataset.wasChecked = radio.checked ? 'true' : 'false';
+    });
+    
+    // Setup SV opacity control
+    setupSVOpacityControl(map, layers, updateLegend);
+    
+    // Setup SV color ramp selector
+    setupSVColorRampSelector(map, layers, updateLegend);
+}
+
+/**
+ * Auto-load Admin Level 1 SV on startup
+ */
+async function autoLoadSVAdmin1(map, layers, colorScales, updateLegend, hideLegend) {
+    const admin1Radio = document.getElementById('svAdmin1Layer');
+    if (admin1Radio && admin1Radio.checked) {
+        // Set the initial state
+        admin1Radio.dataset.wasChecked = 'true';
+        
+        await loadSVLayer('svAdmin1Layer', map, layers, colorScales, updateLegend, hideLegend);
+        currentSVLayer = 'svAdmin1Layer';
+        
+        // Set default color ramp
+        const colorRampSelector = document.getElementById('svColorRamp');
+        if (colorRampSelector) {
+            colorRampSelector.value = 'blueToRed';
+            colorRampSelector.dispatchEvent(new Event('change'));
+        }
+        
+        // Show controls since a layer is selected
+        const controlsContainer = document.querySelector('.social-vulnerability-btn').nextElementSibling.querySelector('.layer-controls');
+        if (controlsContainer) {
+            controlsContainer.style.display = 'block';
+        }
+    }
+}
+
+/**
+ * Load a Social Vulnerability layer
+ */
+async function loadSVLayer(layerId, map, layers, colorScales, updateLegend, hideLegend) {
+    const config = layerConfig[layerId];
+    if (!config) return;
+    
+    try {
+        if (!layers.vector[layerId]) {
+            layers.vector[layerId] = await loadVectorLayer(config.url, { style: config.style });
+            addInfoPopupHandler(layers.vector[layerId], config.layerType || 'sv-default');
+        }
+        
+        layers.vector[layerId].addTo(map);
+        
+        // Apply current color ramp if selected
+        const colorRampSelector = document.getElementById(config.colorRampSelector);
+        if (colorRampSelector && colorRampSelector.value) {
+            const colorRamp = getColorRamp(colorRampSelector.value);
+            if (colorRamp) {
+                const opacitySlider = document.getElementById(config.opacityControl);
+                const opacity = opacitySlider ? parseFloat(opacitySlider.value) : 0.6;
+                
+                updateVectorLayerStyle(
+                    layers.vector[layerId],
+                    config.svAttribute,
+                    colorRamp,
+                    opacity,
+                    updateLegend
+                );
+            }
+        }
+        
+    } catch (error) {
+        console.error(`Error loading SV layer ${layerId}:`, error);
+    }
+}
+
+/**
+ * Setup SV opacity control
+ */
+function setupSVOpacityControl(map, layers, updateLegend) {
+    const opacitySlider = document.getElementById('svOpacity');
+    const opacityDisplay = document.getElementById('svOpacityValue');
+    
+    if (!opacitySlider || !opacityDisplay) return;
+    
+    opacitySlider.addEventListener('input', function() {
+        const value = Math.round(this.value * 100);
+        opacityDisplay.textContent = `${value}%`;
+        
+        // Update current SV layer opacity
+        if (currentSVLayer && layers.vector[currentSVLayer]) {
+            const config = layerConfig[currentSVLayer];
+            const opacity = parseFloat(this.value);
+            
+            // Apply basic opacity
+            layers.vector[currentSVLayer].setStyle({ 
+                fillOpacity: opacity, 
+                opacity: opacity 
+            });
+            
+            // Update color-based styling if configured
+            const colorRampSelector = document.getElementById('svColorRamp');
+            if (colorRampSelector && colorRampSelector.value) {
+                const colorRamp = getColorRamp(colorRampSelector.value);
+                if (colorRamp) {
+                    updateVectorLayerStyle(
+                        layers.vector[currentSVLayer],
+                        config.svAttribute,
+                        colorRamp,
+                        opacity,
+                        updateLegend
+                    );
+                }
+            }
+        }
     });
 }
 
 /**
- * Update SV vector layer based on selected color ramp
+ * Setup SV color ramp selector
  */
-function updateSVVectorLayerFromControls(layerId, layers, updateLegend) {
-    const config = layerConfig[layerId];
-    if (!config || !layers.vector[layerId]) return;
-    
-    // Get selected color ramp
-    const colorRampSelector = document.getElementById(config.colorRampSelector);
-    if (!colorRampSelector || !colorRampSelector.value) return;
-    
-    const colorRamp = getColorRamp(colorRampSelector.value);
-    if (!colorRamp) return;
-    
-    // Get opacity value
-    const opacitySlider = document.getElementById(config.opacityControl);
-    const opacity = opacitySlider ? parseFloat(opacitySlider.value) : 0.6;
-    
-    // Update the layer style using the fixed SV attribute
-    updateVectorLayerStyle(
-        layers.vector[layerId], 
-        config.svAttribute, // Use the fixed 'SV' attribute
-        colorRamp, 
-        opacity, 
-        updateLegend
-    );
+function setupSVColorRampSelector(map, layers, updateLegend) {
+    setupColorRampSelector('svColorRamp', 'svColorPreview', (colorRamp) => {
+        if (currentSVLayer && layers.vector[currentSVLayer] && colorRamp) {
+            const config = layerConfig[currentSVLayer];
+            const opacitySlider = document.getElementById('svOpacity');
+            const opacity = opacitySlider ? parseFloat(opacitySlider.value) : 0.6;
+            
+            updateVectorLayerStyle(
+                layers.vector[currentSVLayer],
+                config.svAttribute,
+                colorRamp,
+                opacity,
+                updateLegend
+            );
+        }
+    });
 }
 
 /**
@@ -409,16 +571,6 @@ function setupLayerToggle(layerId, map, layers, colorScales, updateLegend, hideL
                         generateAdminLabels(layers.vector[layerId], 'adm2', layers.labels.adm2);
                     }
                 }
-
-                // If SV vector layer, setup color ramp selector
-                if (config.type === 'sv-vector' && config.colorRampSelector && layers.vector[layerId]) {
-                    // Set default color ramp if none selected
-                    const colorRampSelector = document.getElementById(config.colorRampSelector);
-                    if (colorRampSelector && !colorRampSelector.value) {
-                        colorRampSelector.value = 'blueToRed'; // Default color ramp for SV
-                        colorRampSelector.dispatchEvent(new Event('change'));
-                    }
-                }
             } catch (error) {
                 console.error(`Error loading layer ${layerId}:`, error);
                 this.checked = false;
@@ -469,7 +621,6 @@ async function loadLayer(layerId, map, layers, colorScales, updateLegend) {
     
     switch (config.type) {
         case 'vector':
-        case 'sv-vector':
             if (!layers.vector[layerId]) {
                 layers.vector[layerId] = await loadVectorLayer(config.url, { style: config.style });
                 
@@ -538,14 +689,6 @@ function removeLayer(layerId, map, layers, hideLegend) {
             }
             break;
             
-        case 'sv-vector':
-            if (layers.vector[layerId]) {
-                map.removeLayer(layers.vector[layerId]);
-                // Hide legend for SV layers since they update the legend when loaded
-                hideLegend();
-            }
-            break;
-            
         case 'point':
             if (layers.point[layerId]) {
                 map.removeLayer(layers.point[layerId]);
@@ -606,7 +749,6 @@ function updateLayerOpacity(layerType, layerId, layers, opacity, updateLegend) {
             break;
             
         case 'vector':
-        case 'sv-vector':
             if (!layers.vector[layerId]) return;
             
             // Apply basic opacity
@@ -617,9 +759,7 @@ function updateLayerOpacity(layerType, layerId, layers, opacity, updateLegend) {
             
             // Update color-based styling if configured
             const config = layerConfig[layerId];
-            if (config.type === 'sv-vector' && config.colorRampSelector) {
-                updateSVVectorLayerFromControls(layerId, layers, updateLegend);
-            } else if (config.attributeSelector && config.colorRampSelector) {
+            if (config.attributeSelector && config.colorRampSelector) {
                 const attributeSelector = document.getElementById(config.attributeSelector);
                 const colorRampSelector = document.getElementById(config.colorRampSelector);
                 
