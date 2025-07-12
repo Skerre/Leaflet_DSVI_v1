@@ -222,7 +222,8 @@ let currentSVLayer = null;
  * @param {Function} updateLegend - Function to update the legend
  * @param {Function} hideLegend - Function to hide the legend
  */
-export function setupLayerControls(map, layers, colorScales, updateLegend, hideLegend) {
+export function setupLayerControls(map, layers, colorScales, updateLegend, hideLegend, infoPanel = null) {
+    window.currentInfoPanel = infoPanel;
     // Initialize layer handlers
     Object.keys(layerConfig).forEach(layerId => {
         const config = layerConfig[layerId];
@@ -276,6 +277,9 @@ function setupSVRadioControls(map, layers, colorScales, updateLegend, hideLegend
                 if (currentSVLayer && layers.vector[currentSVLayer]) {
                     map.removeLayer(layers.vector[currentSVLayer]);
                 }
+                if (window.currentInfoPanel) {
+                window.currentInfoPanel.removeLayer(currentSVLayer);
+}
                 currentSVLayer = null;
                 hideLegend();
                 
@@ -300,6 +304,9 @@ function setupSVRadioControls(map, layers, colorScales, updateLegend, hideLegend
             if (currentSVLayer && layers.vector[currentSVLayer]) {
                 map.removeLayer(layers.vector[currentSVLayer]);
             }
+            if (window.currentInfoPanel && currentSVLayer) {
+            window.currentInfoPanel.removeLayer(currentSVLayer);
+}
             
             // Load new SV layer
             const layerId = this.id;
@@ -387,6 +394,22 @@ async function loadSVLayer(layerId, map, layers, colorScales, updateLegend, hide
     } catch (error) {
         console.error(`Error loading SV layer ${layerId}:`, error);
     }
+    if (window.currentInfoPanel) {
+    const layerInfo = {
+        id: layerId,
+        name: getLayerDisplayName(layerId, config),
+        type: 'sv-vector',
+        selectedAttribute: config.svAttribute,
+        opacity: 0.6,
+        layer: layers.vector[layerId]
+    };
+    
+    let featureCount = 0;
+    layers.vector[layerId].eachLayer(() => featureCount++);
+    layerInfo.featureCount = featureCount;
+    
+    window.currentInfoPanel.addLayer(layerId, layerInfo);
+}
 }
 
 /**
@@ -448,6 +471,12 @@ function setupSVColorRampSelector(map, layers, updateLegend) {
                 opacity,
                 updateLegend
             );
+                        if (window.currentInfoPanel) {
+                window.currentInfoPanel.updateLayer(currentSVLayer, {
+                    colorRamp: colorRamp.name || 'Unknown',
+                    opacity: opacity
+                });
+            }
         }
     });
 }
@@ -541,6 +570,13 @@ function updateVectorLayerFromControls(layerId, layers, updateLegend) {
         opacity, 
         updateLegend
     );
+        if (window.currentInfoPanel) {
+        window.currentInfoPanel.updateLayer(layerId, {
+            selectedAttribute: attributeSelector.value,
+            colorRamp: colorRamp.name || colorRampSelector.value,
+            opacity: opacity
+        });
+    }
 }
 
 /**
@@ -667,7 +703,25 @@ async function loadLayer(layerId, map, layers, colorScales, updateLegend) {
             );
             break;
     }
+if (window.currentInfoPanel) {
+        const layerInfo = {
+            id: layerId,
+            name: getLayerDisplayName(layerId, config),
+            type: config.type,
+            opacity: getLayerOpacity(layerId, config),
+            layer: layers.vector[layerId] || layers.point[layerId] || layers.tiff[layerId]
+        };
+        
+        if (config.type === 'vector' || config.type === 'point') {
+            let featureCount = 0;
+            layerInfo.layer.eachLayer(() => featureCount++);
+            layerInfo.featureCount = featureCount;
+        }
+        
+        window.currentInfoPanel.addLayer(layerId, layerInfo);
+    }
 }
+
 
 /**
  * Remove a layer by ID
@@ -713,6 +767,9 @@ function removeLayer(layerId, map, layers, hideLegend) {
                 hideLegend();
             }
             break;
+    }
+    if (window.currentInfoPanel) {
+        window.currentInfoPanel.removeLayer(layerId);
     }
 }
 
@@ -785,4 +842,40 @@ function updateLayerOpacity(layerType, layerId, layers, opacity, updateLegend) {
             }
             break;
     }
+}
+/**
+ * Get display name for a layer
+ */
+function getLayerDisplayName(layerId, config) {
+    const nameMap = {
+        'geojsonLayer': 'Statistics: Regional',
+        'geojsonLayer2': 'Statistics: Cercles',
+        'svAdmin1Layer': 'Vulnerability: Regional',
+        'svAdmin2Layer': 'Vulnerability: Cercles',
+        'svAdmin3Layer': 'Vulnerability: Communes',
+        'streetNetworkLayer': 'Street Network',
+        'pointLayer': 'Household Survey Statistics',
+        'pointLayer2': 'Cities',
+        'tiffLayer1': 'Cell Tower Density',
+        'tiffLayer2': 'Population Density',
+        'tiffLayer3': 'Social Vulnerability',
+        'tiffLayer4': 'Relative Wealth',
+        'tiffLayer5': 'Nightlight Intensity',
+        'tiffLayer6': 'NDVI',
+        'tiffLayer7': 'Conflicts',
+        'tiffLayer8': 'Temperature'
+    };
+    
+    return nameMap[layerId] || layerId;
+}
+
+/**
+ * Get opacity value for a layer
+ */
+function getLayerOpacity(layerId, config) {
+    if (config.opacityControl) {
+        const slider = document.getElementById(config.opacityControl);
+        return slider ? parseFloat(slider.value) : 1;
+    }
+    return 1;
 }

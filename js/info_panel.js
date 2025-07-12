@@ -371,13 +371,15 @@ export class InfoPanel {
             // Simulate analysis processing
             await new Promise(resolve => setTimeout(resolve, 2000));
             
-            // Get relevant layers for analysis
             const svLayers = Array.from(this.activeLayers.values()).filter(l => 
-                l.type === 'sv-vector' || l.name.toLowerCase().includes('vulnerability')
-            );
-            const statLayers = Array.from(this.activeLayers.values()).filter(l => 
-                l.type === 'vector' && l.selectedAttribute && !l.name.toLowerCase().includes('vulnerability')
-            );
+    l.type === 'sv-vector' || l.name.toLowerCase().includes('vulnerability')
+);
+const statLayers = Array.from(this.activeLayers.values()).filter(l => 
+    l.type === 'vector' && !l.name.toLowerCase().includes('vulnerability')
+);
+
+console.log('SV Layers found:', svLayers);
+console.log('Stat Layers found:', statLayers);
             
             if (svLayers.length === 0 || statLayers.length === 0) {
                 this.showNoDataMessage(resultsContent);
@@ -427,40 +429,161 @@ export class InfoPanel {
     }
     
     /**
-     * Generate correlation data between layers
-     */
-    generateCorrelationData(svLayers, statLayers) {
-        // Mock data generation - in real implementation, this would analyze actual layer data
-        const regions = ['Kayes', 'Koulikoro', 'Sikasso', 'Ségou', 'Mopti', 'Tombouctou', 'Gao', 'Kidal', 'Taoudénit', 'Ménaka'];
-        
-        const data = regions.map(region => {
-            const svScore = Math.random() * 0.8 + 0.1; // 0.1 to 0.9
-            const correlatedStat = (1 - svScore) * 80 + Math.random() * 20; // Inverse correlation with some noise
-            
-            return {
-                region,
-                vulnerability: svScore,
-                statistic: correlatedStat,
-                population: Math.floor(Math.random() * 2000000) + 100000
-            };
-        });
-        
-        // Calculate correlation coefficient
-        const correlation = this.calculateCorrelation(
-            data.map(d => d.vulnerability),
-            data.map(d => d.statistic)
-        );
-        
-        return {
-            data,
-            correlation: correlation.toFixed(3),
-            svLayer: svLayers[0].name,
-            statLayer: statLayers[0].name,
-            statAttribute: statLayers[0].selectedAttribute,
-            timestamp: new Date().toLocaleString()
-        };
+ * Generate correlation data between layers using REAL data
+ */
+generateCorrelationData(svLayers, statLayers) {
+    const svLayer = svLayers[0];
+    const statLayer = statLayers[0];
+    
+    console.log('Analyzing real data from layers:', {
+        svLayer: svLayer.name,
+        statLayer: statLayer.name,
+        statAttribute: statLayer.selectedAttribute
+    });
+    
+    // Extract real data from the layers
+    const data = this.extractRealLayerData(svLayer, statLayer);
+    
+    if (data.length === 0) {
+        throw new Error('No matching regional data found between layers');
     }
     
+    // Calculate actual correlation coefficient
+    const svValues = data.map(d => d.vulnerability);
+    const statValues = data.map(d => d.statistic);
+    const correlation = this.calculateCorrelation(svValues, statValues);
+    
+    console.log('Real correlation calculated:', {
+        correlation: correlation.toFixed(3),
+        dataPoints: data.length,
+        svRange: [Math.min(...svValues), Math.max(...svValues)],
+        statRange: [Math.min(...statValues), Math.max(...statValues)]
+    });
+    
+    return {
+        data,
+        correlation: correlation.toFixed(3),
+        svLayer: svLayer.name,
+        statLayer: statLayer.name,
+        statAttribute: statLayer.selectedAttribute,
+        timestamp: new Date().toLocaleString()
+    };
+}
+
+/**
+ * Extract real data from the actual layers
+ */
+extractRealLayerData(svLayer, statLayer) {
+    const data = [];
+    
+    // Get the actual Leaflet layer objects
+    const svLeafletLayer = svLayer.layer;
+    const statLeafletLayer = statLayer.layer;
+    
+    if (!svLeafletLayer || !statLeafletLayer) {
+        console.error('Could not access layer data');
+        return data;
+    }
+    
+    // Create maps for quick lookup
+    const svData = new Map();
+    const statData = new Map();
+    
+    // Extract SV data
+    svLeafletLayer.eachLayer(function(layer) {
+        if (layer.feature && layer.feature.properties) {
+            const props = layer.feature.properties;
+            const regionName = this.getRegionName(props);
+            const svValue = props.SV || props.sv || props.vulnerability;
+            
+            if (regionName && svValue !== undefined && svValue !== null) {
+                svData.set(regionName, parseFloat(svValue));
+            }
+        }
+    }.bind(this));
+    
+    // Extract statistics data
+    statLeafletLayer.eachLayer(function(layer) {
+        if (layer.feature && layer.feature.properties) {
+            const props = layer.feature.properties;
+            const regionName = this.getRegionName(props);
+            const statValue = props[statLayer.selectedAttribute];
+            
+            if (regionName && statValue !== undefined && statValue !== null) {
+                statData.set(regionName, parseFloat(statValue));
+            }
+        }
+    }.bind(this));
+    
+    console.log('Extracted data:', {
+        svRegions: Array.from(svData.keys()),
+        statRegions: Array.from(statData.keys()),
+        svSample: Array.from(svData.entries()).slice(0, 3),
+        statSample: Array.from(statData.entries()).slice(0, 3)
+    });
+    
+    // Match regions and create final dataset
+    svData.forEach((svValue, regionName) => {
+        if (statData.has(regionName)) {
+            const statValue = statData.get(regionName);
+            
+            // Only include if both values are valid numbers
+            if (!isNaN(svValue) && !isNaN(statValue)) {
+                data.push({
+                    region: regionName,
+                    vulnerability: svValue,
+                    statistic: statValue,
+                    population: this.getPopulationEstimate(regionName) // Optional population data
+                });
+            }
+        }
+    });
+    
+    return data;
+}
+
+/**
+ * Get region name from feature properties
+ */
+getRegionName(properties) {
+    // Try different possible name fields in order of preference
+    const nameFields = [
+        'NAME_1', 'NAME_2', 'NAME_3',
+        'name', 'Name', 'AREA_NAME',
+        'ADM1_NAME', 'ADM2_NAME', 'ADM3_NAME',
+        'Cercle/District', 'District', 'Commune'
+    ];
+    
+    for (const field of nameFields) {
+        if (properties[field] && typeof properties[field] === 'string') {
+            return properties[field].trim();
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Get population estimate for a region (mock data for now)
+ */
+getPopulationEstimate(regionName) {
+    // This could be enhanced to use real population data from your layers
+    // For now, return a reasonable estimate
+    const estimates = {
+        'Kayes': 2418305,
+        'Koulikoro': 2418618,
+        'Sikasso': 3137917,
+        'Ségou': 2336255,
+        'Mopti': 2037330,
+        'Tombouctou': 681691,
+        'Gao': 544120,
+        'Kidal': 67638,
+        'Taoudénit': 32125,
+        'Ménaka': 62180
+    };
+    
+    return estimates[regionName] || Math.floor(Math.random() * 1000000) + 100000;
+}
     /**
      * Calculate Pearson correlation coefficient
      */
@@ -481,84 +604,254 @@ export class InfoPanel {
     /**
      * Create the HTML structure for the report
      */
-    createReportHTML(reportData) {
-        return `
-            <div class="report-container">
-                <div class="report-header">
-                    <h5>Correlation Analysis Report</h5>
-                    <button class="download-btn" onclick="window.infoPanelInstance.downloadReport()">
-                        📄 Download PDF
-                    </button>
-                </div>
-                
-                <div class="report-summary">
-                    <div class="summary-grid">
-                        <div class="summary-item">
-                            <label>Social Vulnerability Layer:</label>
-                            <span>${reportData.svLayer}</span>
-                        </div>
-                        <div class="summary-item">
-                            <label>Statistics Layer:</label>
-                            <span>${reportData.statLayer}</span>
-                        </div>
-                        <div class="summary-item">
-                            <label>Selected Attribute:</label>
-                            <span>${reportData.statAttribute}</span>
-                        </div>
-                        <div class="summary-item">
-                            <label>Correlation Coefficient:</label>
-                            <span class="correlation-value ${this.getCorrelationClass(reportData.correlation)}">${reportData.correlation}</span>
-                        </div>
+    /**
+ * Create the HTML structure for the report with interpretation
+ */
+createReportHTML(reportData) {
+    const interpretation = this.generateCorrelationInterpretation(
+        reportData.correlation, 
+        reportData.statAttribute
+    );
+    
+    return `
+        <div class="report-container">
+            <div class="report-header">
+                <h5>Correlation Analysis Report</h5>
+                <button class="download-btn" onclick="window.infoPanelInstance.downloadReport()">
+                    📄 Download PDF
+                </button>
+            </div>
+            
+            <div class="report-summary">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <label>Social Vulnerability Layer:</label>
+                        <span>${reportData.svLayer}</span>
                     </div>
-                </div>
-                
-                <div class="report-section">
-                    <h6>Regional Data Table</h6>
-                    <div class="data-table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Region</th>
-                                    <th>Vulnerability Score</th>
-                                    <th>${reportData.statAttribute}</th>
-                                    <th>Population</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${reportData.data.map(row => `
-                                    <tr>
-                                        <td>${row.region}</td>
-                                        <td>${row.vulnerability.toFixed(3)}</td>
-                                        <td>${row.statistic.toFixed(1)}</td>
-                                        <td>${row.population.toLocaleString()}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                    <div class="summary-item">
+                        <label>Statistics Layer:</label>
+                        <span>${reportData.statLayer}</span>
                     </div>
-                </div>
-                
-                <div class="report-section">
-                    <h6>Visualizations</h6>
-                    <div class="charts-container">
-                        <div class="chart-item">
-                            <h7>Correlation Scatter Plot</h7>
-                            <canvas id="correlation-chart" width="350" height="200"></canvas>
-                        </div>
-                        <div class="chart-item">
-                            <h7>Regional Comparison</h7>
-                            <canvas id="bar-chart" width="350" height="200"></canvas>
-                        </div>
+                    <div class="summary-item">
+                        <label>Selected Attribute:</label>
+                        <span>${reportData.statAttribute}</span>
                     </div>
-                </div>
-                
-                <div class="report-footer">
-                    <small>Generated: ${reportData.timestamp}</small>
+                    <div class="summary-item">
+                        <label>Correlation Coefficient:</label>
+                        <span class="correlation-value ${this.getCorrelationClass(reportData.correlation)}">${reportData.correlation}</span>
+                    </div>
                 </div>
             </div>
-        `;
+            
+            <div class="report-section interpretation-section">
+                <h6>📊 Interpretation</h6>
+                <div class="interpretation-content">
+                    ${interpretation.summary}
+                    <div class="interpretation-details">
+                        <p><strong>What this means:</strong></p>
+                        <ul>
+                            ${interpretation.bullets.map(bullet => `<li>${bullet}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="interpretation-implications">
+                        <p><strong>Policy Implications:</strong></p>
+                        <p>${interpretation.implications}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-section">
+                <h6>Regional Data Table</h6>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Vulnerability Score</th>
+                                <th>${reportData.statAttribute}</th>
+                                <th>Population</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${reportData.data.map(row => `
+                                <tr>
+                                    <td>${row.region}</td>
+                                    <td>${row.vulnerability.toFixed(3)}</td>
+                                    <td>${row.statistic.toFixed(1)}${this.getAttributeUnit(reportData.statAttribute)}</td>
+                                    <td>${row.population.toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="report-section">
+                <h6>Visualizations</h6>
+                <div class="charts-container">
+                    <div class="chart-item">
+                        <h7>Correlation Scatter Plot</h7>
+                        <canvas id="correlation-chart" width="350" height="200"></canvas>
+                    </div>
+                    <div class="chart-item">
+                        <h7>Regional Comparison</h7>
+                        <canvas id="bar-chart" width="350" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-footer">
+                <small>Generated: ${reportData.timestamp}</small>
+            </div>
+        </div>
+    `;
+}
+    
+/**
+ * Generate intelligent interpretation based on correlation and attribute type
+ */
+generateCorrelationInterpretation(correlationStr, attribute) {
+    const correlation = parseFloat(correlationStr);
+    const absCorr = Math.abs(correlation);
+    const isPositive = correlation > 0;
+    
+    // Determine attribute type and expected relationship
+    const attributeInfo = this.analyzeAttribute(attribute);
+    
+    // Determine correlation strength
+    let strength, strengthDesc;
+    if (absCorr >= 0.8) {
+        strength = 'very strong';
+        strengthDesc = 'very strong relationship';
+    } else if (absCorr >= 0.6) {
+        strength = 'strong';
+        strengthDesc = 'strong relationship';
+    } else if (absCorr >= 0.4) {
+        strength = 'moderate';
+        strengthDesc = 'moderate relationship';
+    } else if (absCorr >= 0.2) {
+        strength = 'weak';
+        strengthDesc = 'weak relationship';
+    } else {
+        strength = 'very weak';
+        strengthDesc = 'very weak or no meaningful relationship';
     }
     
+    // Generate interpretation
+    const direction = isPositive ? 'positively' : 'negatively';
+    const relationshipType = isPositive ? 'increases' : 'decreases';
+    
+    // Create summary
+    let summary = `
+        <div class="correlation-summary ${isPositive ? 'positive' : 'negative'}">
+            <p><strong>${attribute} and Social Vulnerability are ${direction} correlated (r = ${correlationStr})</strong></p>
+            <p>This indicates a <strong>${strengthDesc}</strong> between these two variables.</p>
+        </div>
+    `;
+    
+    // Generate detailed bullets
+    const bullets = [
+        `As social vulnerability increases, ${attribute} tends to ${relationshipType}`,
+        `The correlation coefficient of ${correlationStr} indicates a ${strength} ${direction} relationship`,
+        `This relationship explains approximately ${Math.round(correlation * correlation * 100)}% of the variance between the variables`
+    ];
+    
+    // Add context-specific bullets based on attribute type
+    if (attributeInfo.isHealthIndicator) {
+        if (isPositive) {
+            bullets.push(`Higher vulnerability regions tend to have worse ${attributeInfo.displayName} outcomes`);
+        } else {
+            bullets.push(`Higher vulnerability regions tend to have better ${attributeInfo.displayName} outcomes (unexpected - may warrant further investigation)`);
+        }
+    } else if (attributeInfo.isEconomicIndicator) {
+        if (isPositive) {
+            bullets.push(`Regions with higher vulnerability show higher ${attributeInfo.displayName}`);
+        } else {
+            bullets.push(`Regions with higher vulnerability show lower ${attributeInfo.displayName}`);
+        }
+    }
+    
+    // Generate policy implications
+    let implications;
+    if (absCorr >= 0.6) {
+        if (attributeInfo.isHealthIndicator && isPositive) {
+            implications = `The strong positive correlation suggests that interventions targeting social vulnerability reduction could significantly improve ${attributeInfo.displayName} outcomes. Priority should be given to the most vulnerable regions for maximum impact.`;
+        } else if (attributeInfo.isEconomicIndicator && isPositive) {
+            implications = `The strong correlation indicates that ${attributeInfo.displayName} could serve as a reliable indicator of social vulnerability. Resources should be allocated proportionally to vulnerability levels.`;
+        } else {
+            implications = `The strong ${direction} correlation suggests that these variables are closely linked and should be considered together in policy planning and resource allocation decisions.`;
+        }
+    } else if (absCorr >= 0.3) {
+        implications = `The moderate correlation suggests some relationship between these variables, but other factors also play important roles. A multi-faceted approach addressing various determinants would be most effective.`;
+    } else {
+        implications = `The weak correlation suggests these variables are largely independent. Different intervention strategies may be needed for each, and vulnerability reduction may not directly impact ${attributeInfo.displayName}.`;
+    }
+    
+    return {
+        summary,
+        bullets,
+        implications
+    };
+}
+/**
+ * Analyze attribute to determine type and characteristics
+ */
+analyzeAttribute(attribute) {
+    const lowerAttr = attribute.toLowerCase();
+    
+    let isHealthIndicator = false;
+    let isEconomicIndicator = false;
+    let displayName = attribute;
+    
+    // Health indicators
+    if (lowerAttr.includes('stunting') || lowerAttr.includes('wasting') || 
+        lowerAttr.includes('underweight') || lowerAttr.includes('malnutrition')) {
+        isHealthIndicator = true;
+        displayName = 'malnutrition';
+    } else if (lowerAttr.includes('mortality') || lowerAttr.includes('death')) {
+        isHealthIndicator = true;
+        displayName = 'health outcomes';
+    } else if (lowerAttr.includes('vaccination') || lowerAttr.includes('immunization')) {
+        isHealthIndicator = true;
+        displayName = 'vaccination coverage';
+    }
+    
+    // Economic indicators
+    else if (lowerAttr.includes('poverty') || lowerAttr.includes('income') || 
+             lowerAttr.includes('wealth') || lowerAttr.includes('gdp')) {
+        isEconomicIndicator = true;
+        displayName = 'economic conditions';
+    } else if (lowerAttr.includes('education') || lowerAttr.includes('literacy') || 
+               lowerAttr.includes('school')) {
+        isEconomicIndicator = true;
+        displayName = 'educational outcomes';
+    }
+    
+    return {
+        isHealthIndicator,
+        isEconomicIndicator,
+        displayName
+    };
+}
+
+/**
+ * Get appropriate unit for attribute display
+ */
+getAttributeUnit(attribute) {
+    const lowerAttr = attribute.toLowerCase();
+    
+    if (lowerAttr.includes('%') || lowerAttr.includes('percent')) {
+        return ''; // Already includes %
+    } else if (lowerAttr.includes('rate') || lowerAttr.includes('ratio')) {
+        return '%';
+    } else if (lowerAttr.includes('per') && lowerAttr.includes('1000')) {
+        return ' per 1,000';
+    } else if (lowerAttr.includes('per') && lowerAttr.includes('100')) {
+        return ' per 100,000';
+    }
+    
+    return '';
+}
     /**
      * Get CSS class for correlation strength
      */
@@ -578,124 +871,391 @@ export class InfoPanel {
     }
     
     /**
-     * Create scatter plot for correlation
-     */
-    createScatterPlot(reportData) {
-        const canvas = document.getElementById('correlation-chart');
-        if (!canvas) return;
+ * Create scatter plot for correlation with proper labels and grid
+ */
+createScatterPlot(reportData) {
+    const canvas = document.getElementById('correlation-chart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = 60;
+    const bottomPadding = 80;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    const chartWidth = width - 2 * padding;
+    const chartHeight = height - padding - bottomPadding;
+    
+    // Set up scales
+    const xValues = reportData.data.map(d => d.vulnerability);
+    const yValues = reportData.data.map(d => d.statistic);
+    
+    const xMin = Math.min(...xValues);
+    const xMax = Math.max(...xValues);
+    const yMin = Math.min(...yValues);
+    const yMax = Math.max(...yValues);
+    
+    // Add some padding to the ranges
+    const xRange = xMax - xMin;
+    const yRange = yMax - yMin;
+    const xPadding = xRange * 0.1;
+    const yPadding = yRange * 0.1;
+    
+    const xMinPadded = xMin - xPadding;
+    const xMaxPadded = xMax + xPadding;
+    const yMinPadded = yMin - yPadding;
+    const yMaxPadded = yMax + yPadding;
+    
+    // Draw chart background
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(padding, padding, chartWidth, chartHeight);
+    
+    // Draw grid lines
+    ctx.strokeStyle = '#e9ecef';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#666';
+    ctx.font = '11px Calibri';
+    
+    // X-axis grid and labels
+    const xGridLines = 5;
+    for (let i = 0; i <= xGridLines; i++) {
+        const x = padding + (i / xGridLines) * chartWidth;
+        const value = xMinPadded + (i / xGridLines) * (xMaxPadded - xMinPadded);
         
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
-        const padding = 40;
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, width, height);
-        
-        // Set up scales
-        const xMax = Math.max(...reportData.data.map(d => d.vulnerability));
-        const yMax = Math.max(...reportData.data.map(d => d.statistic));
-        
-        // Draw axes
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 2;
+        // Grid line
         ctx.beginPath();
-        ctx.moveTo(padding, height - padding);
-        ctx.lineTo(width - padding, height - padding);
-        ctx.moveTo(padding, height - padding);
-        ctx.lineTo(padding, padding);
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, padding + chartHeight);
         ctx.stroke();
         
-        // Draw points
-        ctx.fillStyle = '#007bff';
-        reportData.data.forEach(point => {
-            const x = padding + (point.vulnerability / xMax) * (width - 2 * padding);
-            const y = height - padding - (point.statistic / yMax) * (height - 2 * padding);
-            
-            ctx.beginPath();
-            ctx.arc(x, y, 4, 0, 2 * Math.PI);
-            ctx.fill();
-        });
-        
-        // Add labels
-        ctx.fillStyle = '#333';
-        ctx.font = '12px Calibri';
-        ctx.fillText('Vulnerability Score', width / 2 - 30, height - 10);
-        ctx.save();
-        ctx.translate(15, height / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillText(reportData.statAttribute, -30, 0);
-        ctx.restore();
+        // X-axis label
+        ctx.textAlign = 'center';
+        ctx.fillText(value.toFixed(2), x, padding + chartHeight + 20);
     }
     
-    /**
-     * Create bar chart for regional comparison
-     */
-    createBarChart(reportData) {
-        const canvas = document.getElementById('bar-chart');
-        if (!canvas) return;
+    // Y-axis grid and labels
+    const yGridLines = 5;
+    for (let i = 0; i <= yGridLines; i++) {
+        const y = padding + chartHeight - (i / yGridLines) * chartHeight;
+        const value = yMinPadded + (i / yGridLines) * (yMaxPadded - yMinPadded);
         
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
-        const padding = 40;
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, width, height);
-        
-        const barWidth = (width - 2 * padding) / reportData.data.length;
-        const maxValue = Math.max(...reportData.data.map(d => d.vulnerability));
-        
-        // Draw bars
-        reportData.data.forEach((item, index) => {
-            const barHeight = (item.vulnerability / maxValue) * (height - 2 * padding);
-            const x = padding + index * barWidth;
-            const y = height - padding - barHeight;
-            
-            // Bar
-            ctx.fillStyle = '#28a745';
-            ctx.fillRect(x + 2, y, barWidth - 4, barHeight);
-            
-            // Label
-            ctx.fillStyle = '#333';
-            ctx.font = '10px Calibri';
-            ctx.save();
-            ctx.translate(x + barWidth / 2, height - 20);
-            ctx.rotate(-Math.PI / 4);
-            ctx.fillText(item.region.substring(0, 3), -10, 0);
-            ctx.restore();
-        });
-        
-        // Y-axis
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 1;
+        // Grid line
         ctx.beginPath();
-        ctx.moveTo(padding, padding);
-        ctx.lineTo(padding, height - padding);
+        ctx.moveTo(padding, y);
+        ctx.lineTo(padding + chartWidth, y);
         ctx.stroke();
+        
+        // Y-axis label
+        ctx.textAlign = 'right';
+        ctx.fillText(value.toFixed(1), padding - 10, y + 4);
     }
+    
+    // Draw trend line if correlation is significant
+    const correlation = parseFloat(reportData.correlation);
+    if (Math.abs(correlation) > 0.3) {
+        this.drawTrendLine(ctx, reportData.data, padding, chartHeight, chartWidth, 
+                          xMinPadded, xMaxPadded, yMinPadded, yMaxPadded);
+    }
+    
+    // Draw data points
+    reportData.data.forEach((point, index) => {
+        const x = padding + ((point.vulnerability - xMinPadded) / (xMaxPadded - xMinPadded)) * chartWidth;
+        const y = padding + chartHeight - ((point.statistic - yMinPadded) / (yMaxPadded - yMinPadded)) * chartHeight;
+        
+        // Point with gradient
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, 6);
+        gradient.addColorStop(0, '#007bff');
+        gradient.addColorStop(1, '#0056b3');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Point outline
+        ctx.strokeStyle = '#004085';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Add region labels for outliers or on hover (simplified version)
+        if (index < 3) { // Show labels for first 3 points as example
+            ctx.fillStyle = '#333';
+            ctx.font = '9px Calibri';
+            ctx.textAlign = 'left';
+            ctx.fillText(point.region.substring(0, 8), x + 8, y - 8);
+        }
+    });
+    
+    // Draw axes
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    
+    // Y-axis
+    ctx.beginPath();
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, padding + chartHeight);
+    ctx.stroke();
+    
+    // X-axis  
+    ctx.beginPath();
+    ctx.moveTo(padding, padding + chartHeight);
+    ctx.lineTo(padding + chartWidth, padding + chartHeight);
+    ctx.stroke();
+    
+    // Axis labels
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 12px Calibri';
+    
+    // X-axis title
+    ctx.textAlign = 'center';
+    ctx.fillText('Vulnerability Score', width / 2, height - 15);
+    
+    // Y-axis title (rotated)
+    ctx.save();
+    ctx.translate(20, height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText(reportData.statAttribute || 'Statistic Value', 0, 0);
+    ctx.restore();
+    
+    // Chart title
+    ctx.font = 'bold 14px Calibri';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Correlation: r = ${reportData.correlation}`, width / 2, 25);
+}
+
+/**
+ * Draw trend line for scatter plot
+ */
+drawTrendLine(ctx, data, padding, chartHeight, chartWidth, xMin, xMax, yMin, yMax) {
+    if (data.length < 2) return;
+    
+    // Calculate linear regression
+    const n = data.length;
+    const sumX = data.reduce((sum, d) => sum + d.vulnerability, 0);
+    const sumY = data.reduce((sum, d) => sum + d.statistic, 0);
+    const sumXY = data.reduce((sum, d) => sum + d.vulnerability * d.statistic, 0);
+    const sumX2 = data.reduce((sum, d) => sum + d.vulnerability * d.vulnerability, 0);
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    
+    // Draw trend line
+    const x1 = xMin;
+    const y1 = slope * x1 + intercept;
+    const x2 = xMax;
+    const y2 = slope * x2 + intercept;
+    
+    const canvasX1 = padding + ((x1 - xMin) / (xMax - xMin)) * chartWidth;
+    const canvasY1 = padding + chartHeight - ((y1 - yMin) / (yMax - yMin)) * chartHeight;
+    const canvasX2 = padding + ((x2 - xMin) / (xMax - xMin)) * chartWidth;
+    const canvasY2 = padding + chartHeight - ((y2 - yMin) / (yMax - yMin)) * chartHeight;
+    
+    ctx.strokeStyle = '#dc3545';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(canvasX1, canvasY1);
+    ctx.lineTo(canvasX2, canvasY2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+
+createBarChart(reportData) {
+    const canvas = document.getElementById('bar-chart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = 60; // Increased padding for labels
+    const bottomPadding = 80; // Extra space for region names
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    const chartWidth = width - 2 * padding;
+    const chartHeight = height - padding - bottomPadding;
+    const barWidth = chartWidth / reportData.data.length;
+    const maxValue = Math.max(...reportData.data.map(d => d.vulnerability));
+    const minValue = Math.min(...reportData.data.map(d => d.vulnerability));
+    
+    // Draw chart background
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(padding, padding, chartWidth, chartHeight);
+    
+    // Draw grid lines and Y-axis labels
+    ctx.strokeStyle = '#e9ecef';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#666';
+    ctx.font = '11px Calibri';
+    
+    const gridLines = 5;
+    for (let i = 0; i <= gridLines; i++) {
+        const y = padding + (i / gridLines) * chartHeight;
+        const value = maxValue - (i / gridLines) * (maxValue - minValue);
+        
+        // Grid line
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(padding + chartWidth, y);
+        ctx.stroke();
+        
+        // Y-axis label
+        ctx.textAlign = 'right';
+        ctx.fillText(value.toFixed(2), padding - 10, y + 4);
+    }
+    
+    // Draw bars
+    reportData.data.forEach((item, index) => {
+        const barHeight = ((item.vulnerability - minValue) / (maxValue - minValue)) * chartHeight;
+        const x = padding + index * barWidth;
+        const y = padding + chartHeight - barHeight;
+        
+        // Bar with gradient
+        const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight);
+        gradient.addColorStop(0, '#28a745');
+        gradient.addColorStop(1, '#20c997');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x + 4, y, barWidth - 8, barHeight);
+        
+        // Bar outline
+        ctx.strokeStyle = '#1e7e34';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 4, y, barWidth - 8, barHeight);
+        
+        // Value on top of bar
+        ctx.fillStyle = '#333';
+        ctx.font = '10px Calibri';
+        ctx.textAlign = 'center';
+        ctx.fillText(item.vulnerability.toFixed(2), x + barWidth / 2, y - 5);
+        
+        // Region name at bottom (rotated)
+        ctx.fillStyle = '#333';
+        ctx.font = '11px Calibri';
+        ctx.save();
+        ctx.translate(x + barWidth / 2, height - bottomPadding + 40);
+        ctx.rotate(-Math.PI / 4);
+        ctx.textAlign = 'right';
+        ctx.fillText(item.region, 0, 0);
+        ctx.restore();
+    });
+    
+    // Draw axes
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    
+    // Y-axis
+    ctx.beginPath();
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, padding + chartHeight);
+    ctx.stroke();
+    
+    // X-axis
+    ctx.beginPath();
+    ctx.moveTo(padding, padding + chartHeight);
+    ctx.lineTo(padding + chartWidth, padding + chartHeight);
+    ctx.stroke();
+    
+    // Y-axis title (rotated)
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 12px Calibri';
+    ctx.save();
+    ctx.translate(20, height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('Vulnerability Score', 0, 0);
+    ctx.restore();
+    
+    // X-axis title
+    ctx.textAlign = 'center';
+    ctx.fillText('Regions', width / 2, height - 15);
+    
+    // Chart title
+    ctx.font = 'bold 14px Calibri';
+    ctx.fillText('Social Vulnerability by Region', width / 2, 25);
+}
     
     /**
      * Download report as PDF (placeholder - would need a PDF library)
      */
-    downloadReport() {
-        // This is a placeholder for PDF generation
-        // In a real implementation, you would use a library like jsPDF
-        alert('PDF download functionality would be implemented here using a library like jsPDF or html2pdf');
+/**
+ * Download report as PDF using jsPDF and html2canvas
+ */
+async downloadReport() {
+    const button = this.container.querySelector('.download-btn');
+    const originalText = button.textContent;
+    
+    try {
+        // Show loading state
+        button.disabled = true;
+        button.textContent = '📄 Generating PDF...';
         
-        // Example of what the implementation might look like:
-        /*
-        const element = this.container.querySelector('.report-container');
-        const opt = {
-            margin: 1,
-            filename: `correlation-report-${Date.now()}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
-        */
+        // Get the report container
+        const reportElement = this.container.querySelector('.report-container');
+        if (!reportElement) {
+            throw new Error('Report container not found');
+        }
+        
+        // Create canvas from the report element
+        const canvas = await html2canvas(reportElement, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: '#ffffff',
+            width: reportElement.scrollWidth,
+            height: reportElement.scrollHeight
+        });
+        
+        // Initialize jsPDF
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        // Calculate dimensions
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 295; // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        // Convert canvas to image
+        const imgData = canvas.toDataURL('image/png');
+        
+        // Add first page
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        // Add additional pages if needed
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+        
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const filename = `correlation-report-${timestamp}.pdf`;
+        
+        // Save the PDF
+        pdf.save(filename);
+        
+        console.log('PDF generated successfully:', filename);
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Failed to generate PDF. Please try again.');
+    } finally {
+        // Restore button state
+        button.disabled = false;
+        button.textContent = originalText;
     }
+}
 }
 
 // Create global instance reference for download functionality

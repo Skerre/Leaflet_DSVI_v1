@@ -11,6 +11,7 @@ import { createAdminLabelLayers, generateAdminLabels } from './admin_labels.js';
 import { initializeInfoPopup } from './info_popup.js';
 import { WelcomePopup } from './welcome_popup.js';
 import { InfoPanel } from './info_panel.js';
+import { CombinedBasemapControl } from './combined-basemap-control.js';
 
 // Global layer storage
 export const layers = {
@@ -40,17 +41,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load Mali outline by default
     await loadCountryOutline(mainMap);
     
-    // Initialize admin label layers
-    layers.labels = createAdminLabelLayers(mainMap, layers.vector, layers.countryOutline, compareMap);
+    // Initialize admin label layers with info panel
+    layers.labels = createAdminLabelLayers(mainMap, layers.vector, layers.countryOutline, compareMap, infoPanel);
     
     // Setup layer controls (this will auto-load SV Admin Level 1)
-    setupLayerControls(mainMap, layers, colorScales, updateLegend, hideLegend);
+    setupLayerControls(mainMap, layers, colorScales, updateLegend, hideLegend, infoPanel);
     
     // Initialize opacity values display
     setupOpacityDisplays();
     
     // Ensure Social Vulnerability dropdown is open by default
     openSocialVulnerabilityDropdown();
+    
+    // NOTE: Combined control is now created in createAdminLabelLayers
     
     // Initialize welcome popup (will only show if not shown before)
     setTimeout(() => {
@@ -85,7 +88,7 @@ function setupMainMap(mapId) {
         maxWidth: 200
     }).addTo(map);
 
-        // Initialize Info Panel
+    // Initialize Info Panel
     infoPanel = new InfoPanel({
         title: 'Layer Analysis & Reports',
         width: '420px',
@@ -93,52 +96,16 @@ function setupMainMap(mapId) {
     });
     infoPanel.setMap(map);
     
+    // Show the panel initially (minimized)
+    infoPanel.show();
+    
     // Set global reference for download functionality
     window.infoPanelInstance = infoPanel;
     
-    // Add info panel toggle control
-    const infoToggle = createInfoPanelToggle(map);
-    infoToggle.addTo(map);
+    // NOTE: Combined control will be added after both maps are created
 
     return map;
 }
-
-
-
-function createInfoPanelToggle(map) {
-    const InfoToggleControl = L.Control.extend({
-        onAdd: function(map) {
-            const container = L.DomUtil.create('div', 'info-toggle-control');
-            container.innerHTML = `
-                <button class="info-toggle-button" title="Toggle Info Panel">
-                    📊
-                </button>
-            `;
-            
-            const button = container.querySelector('.info-toggle-button');
-            
-            L.DomEvent.on(button, 'click', function(e) {
-                L.DomEvent.stopPropagation(e);
-                if (infoPanel) {
-                    infoPanel.toggle();
-                    button.classList.toggle('active', infoPanel.isVisible);
-                }
-            });
-            
-            // Prevent map click events
-            L.DomEvent.disableClickPropagation(container);
-            
-            return container;
-        },
-
-        onRemove: function(map) {
-            // Nothing to do here
-        }
-    });
-
-    return new InfoToggleControl({ position: 'topleft' });
-}
-
 
 /**
  * Set up the comparison map with basemap only

@@ -3,14 +3,15 @@
 import { basemaps, basemapOptions } from './basemaps.js';
 
 /**
- * Create label layers for administrative boundaries and combined control panel
+ * Create label layers for administrative boundaries and combined map control
  * @param {Object} map - Leaflet map instance
  * @param {Object} vectorLayers - Object containing vector layers
  * @param {Object} countryOutline - Country outline layer
  * @param {Object} compareMap - Comparison map instance
+ * @param {Object} infoPanel - Info panel instance
  * @returns {Object} - Object containing label layers
  */
-export function createAdminLabelLayers(map, vectorLayers, countryOutline, compareMap) {
+export function createAdminLabelLayers(map, vectorLayers, countryOutline, compareMap, infoPanel) {
     // Initialize label layers container
     const labelLayers = {
         adm1: L.layerGroup(),
@@ -20,21 +21,22 @@ export function createAdminLabelLayers(map, vectorLayers, countryOutline, compar
     // Remove the default zoom control since we're using the top-left corner
     map.removeControl(map.zoomControl);
     
-    // Create the combined control panel
-    createCombinedMapControl(map, labelLayers, countryOutline, compareMap);
+    // Create the combined control (features + basemaps + info panel)
+    createMapFeaturesControl(map, labelLayers, countryOutline, compareMap, infoPanel);
     
     return labelLayers;
 }
 
 /**
- * Create a custom control combining all map controls
+ * Create a custom control combining all map controls including basemap selection and info panel
  * @param {Object} map - Leaflet map instance
  * @param {Object} labelLayers - Label layer groups
  * @param {Object} countryOutline - Country outline layer
  * @param {Object} compareMap - Comparison map instance
+ * @param {Object} infoPanel - Info panel instance
  */
-function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) {
-    const CombinedControl = L.Control.extend({
+function createMapFeaturesControl(map, labelLayers, countryOutline, compareMap, infoPanel) {
+    const MapFeaturesControl = L.Control.extend({
         options: { position: 'topleft' },
         
         onAdd: function() {
@@ -49,8 +51,8 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
             const contentContainer = L.DomUtil.create('div', 'combined-control-content', container);
             
             // Map Features Section
-            // const featuresTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
-            // featuresTitle.innerHTML = 'Map Controls';
+            const featuresTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
+            featuresTitle.innerHTML = 'Map Features';
             
             // Add outline toggle button
             const outlineButton = createButton('🗺️ Outline Mali', contentContainer);
@@ -63,11 +65,11 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
             const adm2Button = createButton('ADM2 Labels', contentContainer);
             
             // Separator
-            // const separator = L.DomUtil.create('div', 'combined-control-separator', contentContainer);
+            const separator1 = L.DomUtil.create('div', 'combined-control-separator', contentContainer);
             
             // Map Basemaps Section
-            // const basemapsTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
-            // basemapsTitle.innerHTML = 'Map Basemaps';
+            const basemapsTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
+            basemapsTitle.innerHTML = 'Map Basemaps';
             
             // Left map selection
             const leftMapLabel = L.DomUtil.create('label', 'basemap-label', contentContainer);
@@ -94,6 +96,17 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
                 });
             }
             
+            // Separator
+            const separator2 = L.DomUtil.create('div', 'combined-control-separator', contentContainer);
+            
+            // Info Panel Section
+            const infoPanelTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
+            infoPanelTitle.innerHTML = 'Analysis Tools';
+            
+            // Add info panel toggle button
+            const infoPanelButton = createButton('📊 Analysis Panel', contentContainer);
+            infoPanelButton.classList.add('active'); // Initially active
+            
             // Set click handlers for features
             L.DomEvent.on(outlineButton, 'click', function(e) {
                 L.DomEvent.preventDefault(e);
@@ -118,6 +131,13 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
                 updateBasemap(map, this.value);
             });
             
+            // Set info panel handler
+            L.DomEvent.on(infoPanelButton, 'click', function(e) {
+                L.DomEvent.preventDefault(e);
+                L.DomEvent.stopPropagation(e);
+                toggleInfoPanel(infoPanelButton, infoPanel);
+            });
+            
             // Set toggle handler
             L.DomEvent.on(toggleButton, 'click', function(e) {
                 L.DomEvent.preventDefault(e);
@@ -135,8 +155,7 @@ function createCombinedMapControl(map, labelLayers, countryOutline, compareMap) 
         }
     });
     
-    map.addControl(new CombinedControl());
-
+    map.addControl(new MapFeaturesControl());
 }
 
 /**
@@ -166,16 +185,21 @@ function addBasemapOptions(select, defaultBasemap) {
  * @param {string} basemapId - ID of the basemap to use
  */
 function updateBasemap(map, basemapId) {
-    // Remove all basemaps
-    Object.values(basemaps).forEach(layer => {
-        if (map.hasLayer(layer)) {
+    // Remove all basemaps from this specific map
+    map.eachLayer(function(layer) {
+        // Check if this layer is a tile layer (basemap) by checking for _url property
+        if (layer._url && layer.options && layer.options.attribution) {
             map.removeLayer(layer);
         }
     });
     
-    // Add the selected basemap if it exists
+    // Create a new instance of the selected basemap for this map
     if (basemaps[basemapId]) {
-        basemaps[basemapId].addTo(map);
+        const basemapConfig = basemaps[basemapId];
+        
+        // Create a new tile layer instance with the same configuration
+        const newBasemapLayer = L.tileLayer(basemapConfig._url, basemapConfig.options);
+        newBasemapLayer.addTo(map);
     }
 }
 
@@ -334,6 +358,37 @@ function toggleCountryOutline(button, map, countryOutline) {
         button.style.backgroundColor = '#d4edda';
         button.style.fontWeight = 'bold';
         countryOutline.addTo(map);
+    }
+}
+
+/**
+ * Toggle info panel visibility
+ * @param {HTMLElement} button - Button element that triggered the toggle
+ * @param {Object} infoPanel - Info panel instance
+ */
+function toggleInfoPanel(button, infoPanel) {
+    if (!infoPanel) return;
+    
+    const isActive = button.classList.contains('active');
+    
+    if (isActive) {
+        // Turn off info panel
+        button.classList.remove('active');
+        button.style.backgroundColor = '#f8f8f8';
+        button.style.fontWeight = 'normal';
+        
+        if (infoPanel.isVisible) {
+            infoPanel.hide();
+        }
+    } else {
+        // Turn on info panel
+        button.classList.add('active');
+        button.style.backgroundColor = '#d4edda';
+        button.style.fontWeight = 'bold';
+        
+        if (!infoPanel.isVisible) {
+            infoPanel.show();
+        }
     }
 }
 
