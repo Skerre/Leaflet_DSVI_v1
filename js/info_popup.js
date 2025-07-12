@@ -103,7 +103,7 @@ function generatePopupContent(properties, layerType) {
     content += generateAdministrativeSection(properties);
     
     // Social Vulnerability Section (if applicable)
-    if (layerType.includes('sv-admin') || properties.SV !== undefined) {
+    if (layerType.includes('sv-admin') || properties.Social-Vulnerability !== undefined) {
         content += generateSocialVulnerabilitySection(properties);
     }
     
@@ -157,11 +157,11 @@ function generateAdministrativeSection(properties) {
 function generateSocialVulnerabilitySection(properties) {
     let content = '<div class="info-section"><h4>Social Vulnerability</h4>';
     
-    // Main SV score
-    if (properties.SV !== undefined) {
-        const svValue = formatValue(properties.SV);
-        const svCategory = categorizeSVScore(properties.SV);
-        content += createInfoItem('SV Score', `${svValue} (${svCategory})`, true);
+    // Main Social-Vulnerability score
+    if (properties.Social-Vulnerability !== undefined) {
+        const svValue = formatValue(properties.Social-Vulnerability);
+        const svCategory = categorizeSVScore(properties.Social-Vulnerability);
+        content += createInfoItem('Social-Vulnerability Score', `${svValue} (${svCategory})`, true);
     }
     
     // Look for other vulnerability-related fields
@@ -173,7 +173,7 @@ function generateSocialVulnerabilitySection(properties) {
         'Economic Index': ['ECONOMIC', 'econ_index', 'ECO_INDEX']
     };
     
-    let hasVulnData = properties.SV !== undefined;
+    let hasVulnData = properties.Social-Vulnerability !== undefined;
     
     Object.entries(vulnerabilityFields).forEach(([label, fields]) => {
         const value = getFirstAvailableValue(properties, fields);
@@ -237,7 +237,7 @@ function generateAdditionalDataSection(properties) {
         'NAME_0', 'NAME_1', 'NAME_2', 'NAME_3',
         'Cercle/District', 'COUNTRY', 'REGION',
         'ADM1_NAME', 'ADM2_NAME', 'ADM3_NAME',
-        'ADMIN_ID', 'SV', 'POPULATION', 'POP',
+        'ADMIN_ID', 'Social-Vulnerability', 'POPULATION', 'POP',
         'AREA', 'DENSITY', 'HOUSEHOLDS', 'GDP_PC',
         'Shape_Area', 'Shape_Length'
     ]);
@@ -319,7 +319,7 @@ function formatValue(value) {
 
 /**
  * Categorize Social Vulnerability score
- * @param {number} score - SV score
+ * @param {number} score - Social-Vulnerability score
  * @returns {string} - Category label
  */
 function categorizeSVScore(score) {

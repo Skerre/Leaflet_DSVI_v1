@@ -378,7 +378,7 @@ const statLayers = Array.from(this.activeLayers.values()).filter(l =>
     l.type === 'vector' && !l.name.toLowerCase().includes('vulnerability')
 );
 
-console.log('SV Layers found:', svLayers);
+console.log('Social-Vulnerability Layers found:', svLayers);
 console.log('Stat Layers found:', statLayers);
             
             if (svLayers.length === 0 || statLayers.length === 0) {
@@ -489,12 +489,12 @@ extractRealLayerData(svLayer, statLayer) {
     const svData = new Map();
     const statData = new Map();
     
-    // Extract SV data
+    // Extract Social-Vulnerability data
     svLeafletLayer.eachLayer(function(layer) {
         if (layer.feature && layer.feature.properties) {
             const props = layer.feature.properties;
             const regionName = this.getRegionName(props);
-            const svValue = props.SV || props.sv || props.vulnerability;
+            const svValue = props.Social-Vulnerability || props.sv || props.vulnerability;
             
             if (regionName && svValue !== undefined && svValue !== null) {
                 svData.set(regionName, parseFloat(svValue));

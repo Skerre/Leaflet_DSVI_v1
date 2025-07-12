@@ -59,17 +59,17 @@ function createMapFeaturesControl(map, labelLayers, countryOutline, compareMap, 
             outlineButton.classList.add('active'); // Initially active
             
             // Add ADM1 button
-            const adm1Button = createButton('ADM1 Labels', contentContainer);
+            const adm1Button = createButton('Region Names', contentContainer);
             
             // Add ADM2 button
-            const adm2Button = createButton('ADM2 Labels', contentContainer);
+            const adm2Button = createButton('Cercle Names', contentContainer);
             
             // Separator
             const separator1 = L.DomUtil.create('div', 'combined-control-separator', contentContainer);
             
             // Map Basemaps Section
-            const basemapsTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
-            basemapsTitle.innerHTML = 'Map Basemaps';
+            // const basemapsTitle = L.DomUtil.create('div', 'combined-control-title', contentContainer);
+            // basemapsTitle.innerHTML = 'Map Basemaps';
             
             // Left map selection
             const leftMapLabel = L.DomUtil.create('label', 'basemap-label', contentContainer);

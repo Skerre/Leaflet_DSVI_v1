@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize admin label layers with info panel
     layers.labels = createAdminLabelLayers(mainMap, layers.vector, layers.countryOutline, compareMap, infoPanel);
     
-    // Setup layer controls (this will auto-load SV Admin Level 1)
+    // Setup layer controls (this will auto-load Social-Vulnerability Admin Level 1)
     setupLayerControls(mainMap, layers, colorScales, updateLegend, hideLegend, infoPanel);
     
     // Initialize opacity values display

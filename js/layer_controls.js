@@ -58,7 +58,7 @@ const layerConfig = {
         opacityDisplay: 'svOpacityValue',
         colorRampSelector: 'svColorRamp',
         colorRampPreview: 'svColorPreview',
-        svAttribute: 'SV',
+        svAttribute: 'Social-Vulnerability',
         layerType: 'sv-admin1'
     },
     svAdmin2Layer: {
@@ -74,7 +74,7 @@ const layerConfig = {
         opacityDisplay: 'svOpacityValue',
         colorRampSelector: 'svColorRamp',
         colorRampPreview: 'svColorPreview',
-        svAttribute: 'SV',
+        svAttribute: 'Social-Vulnerability',
         layerType: 'sv-admin2'
     },
     svAdmin3Layer: {
@@ -90,7 +90,7 @@ const layerConfig = {
         opacityDisplay: 'svOpacityValue',
         colorRampSelector: 'svColorRamp',
         colorRampPreview: 'svColorPreview',
-        svAttribute: 'SV',
+        svAttribute: 'Social-Vulnerability',
         layerType: 'sv-admin3'
     },
     streetNetworkLayer: {
@@ -211,7 +211,7 @@ const layerConfig = {
     }
 };
 
-// Store reference to current active SV layer
+// Store reference to current active Social-Vulnerability layer
 let currentSVLayer = null;
 
 /**
@@ -228,7 +228,7 @@ export function setupLayerControls(map, layers, colorScales, updateLegend, hideL
     Object.keys(layerConfig).forEach(layerId => {
         const config = layerConfig[layerId];
         
-        // Skip SV layers - they are handled by radio buttons
+        // Skip Social-Vulnerability layers - they are handled by radio buttons
         if (config.type === 'sv-vector') {
             return;
         }
@@ -256,7 +256,7 @@ export function setupLayerControls(map, layers, colorScales, updateLegend, hideL
     // Setup point layer property selector
     setupPointLayerSelector(layers);
     
-    // Auto-load Admin Level 1 SV on startup
+    // Auto-load Admin Level 1 Social-Vulnerability on startup
     autoLoadSVAdmin1(map, layers, colorScales, updateLegend, hideLegend);
 }
 
@@ -273,7 +273,7 @@ function setupSVRadioControls(map, layers, colorScales, updateLegend, hideLegend
                 this.checked = false;
                 this.dataset.wasChecked = 'false';
                 
-                // Remove current SV layer if exists
+                // Remove current Social-Vulnerability layer if exists
                 if (currentSVLayer && layers.vector[currentSVLayer]) {
                     map.removeLayer(layers.vector[currentSVLayer]);
                 }
@@ -300,7 +300,7 @@ function setupSVRadioControls(map, layers, colorScales, updateLegend, hideLegend
             this.dataset.wasChecked = 'true';
             this.checked = true;
             
-            // Remove current SV layer if exists
+            // Remove current Social-Vulnerability layer if exists
             if (currentSVLayer && layers.vector[currentSVLayer]) {
                 map.removeLayer(layers.vector[currentSVLayer]);
             }
@@ -308,7 +308,7 @@ function setupSVRadioControls(map, layers, colorScales, updateLegend, hideLegend
             window.currentInfoPanel.removeLayer(currentSVLayer);
 }
             
-            // Load new SV layer
+            // Load new Social-Vulnerability layer
             const layerId = this.id;
             await loadSVLayer(layerId, map, layers, colorScales, updateLegend, hideLegend);
             currentSVLayer = layerId;
@@ -324,15 +324,15 @@ function setupSVRadioControls(map, layers, colorScales, updateLegend, hideLegend
         radio.dataset.wasChecked = radio.checked ? 'true' : 'false';
     });
     
-    // Setup SV opacity control
+    // Setup Social-Vulnerability opacity control
     setupSVOpacityControl(map, layers, updateLegend);
     
-    // Setup SV color ramp selector
+    // Setup Social-Vulnerability color ramp selector
     setupSVColorRampSelector(map, layers, updateLegend);
 }
 
 /**
- * Auto-load Admin Level 1 SV on startup
+ * Auto-load Admin Level 1 Social-Vulnerability on startup
  */
 async function autoLoadSVAdmin1(map, layers, colorScales, updateLegend, hideLegend) {
     const admin1Radio = document.getElementById('svAdmin1Layer');
@@ -392,7 +392,7 @@ async function loadSVLayer(layerId, map, layers, colorScales, updateLegend, hide
         }
         
     } catch (error) {
-        console.error(`Error loading SV layer ${layerId}:`, error);
+        console.error(`Error loading Social-Vulnerability layer ${layerId}:`, error);
     }
     if (window.currentInfoPanel) {
     const layerInfo = {
@@ -413,7 +413,7 @@ async function loadSVLayer(layerId, map, layers, colorScales, updateLegend, hide
 }
 
 /**
- * Setup SV opacity control
+ * Setup Social-Vulnerability opacity control
  */
 function setupSVOpacityControl(map, layers, updateLegend) {
     const opacitySlider = document.getElementById('svOpacity');
@@ -425,7 +425,7 @@ function setupSVOpacityControl(map, layers, updateLegend) {
         const value = Math.round(this.value * 100);
         opacityDisplay.textContent = `${value}%`;
         
-        // Update current SV layer opacity
+        // Update current Social-Vulnerability layer opacity
         if (currentSVLayer && layers.vector[currentSVLayer]) {
             const config = layerConfig[currentSVLayer];
             const opacity = parseFloat(this.value);
@@ -455,7 +455,7 @@ function setupSVOpacityControl(map, layers, updateLegend) {
 }
 
 /**
- * Setup SV color ramp selector
+ * Setup Social-Vulnerability color ramp selector
  */
 function setupSVColorRampSelector(map, layers, updateLegend) {
     setupColorRampSelector('svColorRamp', 'svColorPreview', (colorRamp) => {

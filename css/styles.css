@@ -226,7 +226,7 @@
     margin-right: 5px;
 }
 
-/* Hide layer controls by default for non-SV layers */
+/* Hide layer controls by default for non-Social-Vulnerability layers */
 .layer-controls {
     padding: 5px 15px;
     margin-bottom: 10px;
