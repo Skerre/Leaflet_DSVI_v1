@@ -13,14 +13,14 @@ export class InfoPanel {
             ...options
         };
         
-        this.isVisible = false;
-        this.isMinimized = true; // Start minimized by default
-        this.activeLayers = new Map();
-        this.container = null;
-        this.map = null;
-        
-        // Initialize the panel
-        this.init();
+    this.isVisible = false;
+    this.isMinimized = false;
+    this.originalHeight = null; // Add this line
+    this.activeLayers = new Map();
+    this.container = null;
+    this.map = null;
+    
+    this.init();
     }
     
     /**
@@ -39,7 +39,7 @@ export class InfoPanel {
         this.map = map;
     }
     
-    /**
+   /**
      * Create the main panel structure
      */
     createPanel() {
@@ -54,7 +54,10 @@ export class InfoPanel {
             top: 15%;
             right: 10px;
             width: ${this.options.width};
-            max-height: ${this.options.maxHeight};
+            height: 400px;
+            min-width: 300px;
+            min-height: 200px;
+            max-height: none;
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -63,6 +66,7 @@ export class InfoPanel {
             overflow: hidden;
             font-family: Calibri, sans-serif;
             border: 1px solid #ddd;
+            resize: both;
         `;
         
         // Create header
@@ -114,6 +118,9 @@ export class InfoPanel {
             </div>
         `;
         
+        // Create resize handles
+        this.createResizeHandles();
+        
         // Assemble panel
         this.container.appendChild(header);
         this.container.appendChild(content);
@@ -126,24 +133,179 @@ export class InfoPanel {
     }
     
     /**
-     * Setup event listeners for panel interactions
+     * Create resize handles for the panel
      */
-    setupEventListeners() {
-        // Header controls
-        const minimizeBtn = this.container.querySelector('.minimize-btn');
-        const closeBtn = this.container.querySelector('.close-btn');
+    createResizeHandles() {
+        // Bottom-right corner resize handle
+        const cornerHandle = document.createElement('div');
+        cornerHandle.className = 'resize-handle corner-handle';
+        cornerHandle.style.cssText = `
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            cursor: nw-resize;
+            background: linear-gradient(-45deg, transparent 40%, #ccc 40%, #ccc 60%, transparent 60%);
+            border-radius: 0 0 8px 0;
+        `;
         
-        minimizeBtn.addEventListener('click', () => this.toggleMinimize());
-        closeBtn.addEventListener('click', () => this.hide());
+        // Right edge resize handle
+        const rightHandle = document.createElement('div');
+        rightHandle.className = 'resize-handle right-handle';
+        rightHandle.style.cssText = `
+            position: absolute;
+            top: 20px;
+            right: 0;
+            width: 5px;
+            height: calc(100% - 40px);
+            cursor: ew-resize;
+            background: transparent;
+        `;
         
-        // Analysis button
-        const analysisBtn = this.container.querySelector('.run-analysis-btn');
-        analysisBtn.addEventListener('click', () => this.generateSummaryReport());
+        // Bottom edge resize handle
+        const bottomHandle = document.createElement('div');
+        bottomHandle.className = 'resize-handle bottom-handle';
+        bottomHandle.style.cssText = `
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            width: calc(100% - 40px);
+            height: 5px;
+            cursor: ns-resize;
+            background: transparent;
+        `;
         
-        // Make panel draggable
-        this.makeDraggable();
+        this.container.appendChild(cornerHandle);
+        this.container.appendChild(rightHandle);
+        this.container.appendChild(bottomHandle);
     }
     
+    /**
+     * Make the panel resizable
+     */
+    makeResizable() {
+        const handles = this.container.querySelectorAll('.resize-handle');
+        
+        handles.forEach(handle => {
+            let isResizing = false;
+            let startX, startY, startWidth, startHeight;
+            
+            handle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                isResizing = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = parseInt(document.defaultView.getComputedStyle(this.container).width, 10);
+                startHeight = parseInt(document.defaultView.getComputedStyle(this.container).height, 10);
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+                
+                // Prevent text selection during resize
+                document.body.style.userSelect = 'none';
+            });
+            
+            const resize = (e) => {
+                if (!isResizing) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                if (handle.classList.contains('corner-handle')) {
+                    // Resize both width and height
+                    const newWidth = Math.max(300, startWidth + deltaX);
+                    const newHeight = Math.max(200, startHeight + deltaY);
+                    this.container.style.width = newWidth + 'px';
+                    this.container.style.height = newHeight + 'px';
+                    this.container.style.maxHeight = 'none'; // Remove max-height during manual resize
+                } else if (handle.classList.contains('right-handle')) {
+                    // Resize width only
+                    const newWidth = Math.max(300, startWidth + deltaX);
+                    this.container.style.width = newWidth + 'px';
+                } else if (handle.classList.contains('bottom-handle')) {
+                    // Resize height only
+                    const newHeight = Math.max(200, startHeight + deltaY);
+                    this.container.style.height = newHeight + 'px';
+                    this.container.style.maxHeight = 'none'; // Remove max-height during manual resize
+                }
+            };
+            
+            const stopResize = () => {
+                isResizing = false;
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+                document.body.style.userSelect = '';
+            };
+        });
+    }
+
+    
+/**
+ * Setup event listeners for panel interactions
+ */
+setupEventListeners() {
+    // Header controls
+    const minimizeBtn = this.container.querySelector('.minimize-btn');
+    const closeBtn = this.container.querySelector('.close-btn');
+    
+    // Handle minimize button click
+    minimizeBtn.addEventListener('click', () => {
+        this.isMinimized = !this.isMinimized;
+        
+        if (this.isMinimized) {
+            // Save current height before minimizing
+            this.originalHeight = this.container.style.height || '400px';
+            
+            // Minimize panel
+            this.container.classList.add('minimized');
+            this.container.style.height = '48px';
+            this.container.style.minHeight = '48px';
+            this.container.style.maxHeight = '48px';
+            this.container.style.resize = 'none';
+            
+            const content = this.container.querySelector('.info-panel-content');
+            content.style.display = 'none';
+            
+            minimizeBtn.textContent = '+';
+            minimizeBtn.title = 'Restore';
+            
+            // Round header corners when minimized
+            const header = this.container.querySelector('.info-panel-header');
+            header.style.borderRadius = '8px';
+            
+        } else {
+            // Restore panel
+            this.container.classList.remove('minimized');
+            this.container.style.height = this.originalHeight || '400px';
+            this.container.style.minHeight = '200px';
+            this.container.style.maxHeight = 'none';
+            this.container.style.resize = 'both';
+            
+            const content = this.container.querySelector('.info-panel-content');
+            content.style.display = 'flex';
+            
+            minimizeBtn.textContent = '−';
+            minimizeBtn.title = 'Minimize';
+            
+            // Restore header corners
+            const header = this.container.querySelector('.info-panel-header');
+            header.style.borderRadius = '8px 8px 0 0';
+        }
+    });
+    
+    closeBtn.addEventListener('click', () => this.hide());
+    
+    // Analysis button
+    const analysisBtn = this.container.querySelector('.run-analysis-btn');
+    analysisBtn.addEventListener('click', () => this.generateSummaryReport());
+    
+    // Make panel draggable and resizable
+    this.makeDraggable();
+    this.makeResizable();  // Add this line!
+}
     /**
      * Make the panel draggable
      */
@@ -230,19 +392,45 @@ export class InfoPanel {
      * Update the visual state based on minimize status
      */
     updateMinimizeState() {
-        const content = this.container.querySelector('.info-panel-content');
-        const minimizeBtn = this.container.querySelector('.minimize-btn');
-        
-        if (this.isMinimized) {
-            content.style.display = 'none';
-            minimizeBtn.textContent = '+';
-            minimizeBtn.title = 'Maximize';
-        } else {
-            content.style.display = 'block';
-            minimizeBtn.textContent = '−';
-            minimizeBtn.title = 'Minimize';
+    const content = this.container.querySelector('.info-panel-content');
+    const minimizeBtn = this.container.querySelector('.minimize-btn');
+    
+    if (this.isMinimized) {
+        // Save current height before minimizing
+        if (!this.originalHeight) {
+            this.originalHeight = this.container.style.height || '400px';
         }
+        
+        this.container.classList.add('minimized');
+        this.container.style.height = '48px';
+        this.container.style.minHeight = '48px';
+        this.container.style.maxHeight = '48px';
+        this.container.style.resize = 'none';
+        
+        content.style.display = 'none';
+        minimizeBtn.textContent = '+';
+        minimizeBtn.title = 'Restore';
+        
+        // Round header corners when minimized
+        const header = this.container.querySelector('.info-panel-header');
+        header.style.borderRadius = '8px';
+        
+    } else {
+        this.container.classList.remove('minimized');
+        this.container.style.height = this.originalHeight || '400px';
+        this.container.style.minHeight = '200px';
+        this.container.style.maxHeight = 'none';
+        this.container.style.resize = 'both';
+        
+        content.style.display = 'flex';
+        minimizeBtn.textContent = '−';
+        minimizeBtn.title = 'Minimize';
+        
+        // Restore header corners
+        const header = this.container.querySelector('.info-panel-header');
+        header.style.borderRadius = '8px 8px 0 0';
     }
+}
     
     /**
      * Add a layer to tracking
@@ -494,8 +682,8 @@ extractRealLayerData(svLayer, statLayer) {
         if (layer.feature && layer.feature.properties) {
             const props = layer.feature.properties;
             const regionName = this.getRegionName(props);
-            const svValue = props.Social-Vulnerability || props.sv || props.vulnerability;
-            
+            const svValue = props['Social-Vulnerability'] || props.sv || props.vulnerability;
+            console.log('svValue:', svValue)
             if (regionName && svValue !== undefined && svValue !== null) {
                 svData.set(regionName, parseFloat(svValue));
             }

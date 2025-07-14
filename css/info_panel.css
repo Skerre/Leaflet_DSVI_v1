@@ -12,7 +12,36 @@
     border-radius: 8px 8px 0 0;
     user-select: none;
 }
+/* Minimized state styles */
+.info-panel-container.minimized {
+    height: 48px !important; /* Only header height */
+    min-height: 48px !important;
+    max-height: 48px !important;
+    resize: none !important; /* Disable resizing when minimized */
+}
 
+.info-panel-container.minimized .info-panel-content {
+    display: none !important; /* Hide content completely */
+}
+
+/* Ensure resizing is only available when not minimized */
+.info-panel-container:not(.minimized) {
+    resize: both;
+    overflow: hidden;
+}
+
+/* Update minimize button icon */
+.info-panel-btn.minimize-btn.minimized::before {
+    content: '+';
+}
+
+.info-panel-btn.minimize-btn:not(.minimized)::before {
+    content: '−';
+}
+
+.info-panel-container.minimized .info-panel-header {
+    border-radius: 8px; /* Round all corners when minimized */
+}
 .info-panel-title {
     font-weight: bold;
     font-size: 16px;
@@ -45,11 +74,14 @@
 }
 
 /* Panel Content */
+/* Panel Content */
 .info-panel-content {
-    max-height: calc(70vh - 60px);
+    height: calc(100% - 48px); /* Subtract header height */
     overflow-y: auto;
     background: white;
     border-radius: 0 0 8px 8px;
+    display: flex;
+    flex-direction: column;
 }
 
 .info-panel-content::-webkit-scrollbar {
